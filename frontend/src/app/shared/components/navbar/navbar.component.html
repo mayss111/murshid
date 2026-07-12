@@ -1,0 +1,27 @@
+<nav class="navbar glass-panel">
+  <div class="nav-container">
+    <a routerLink="/" class="brand">
+      <i class="fa-solid fa-kaaba gold-text"></i>
+      <span class="gradient-text">Murshid</span>
+      <span class="arabic-font gold-text brand-ar">مُرشِد</span>
+    </a>
+
+    <div class="nav-links" *ngIf="authService.isAuthenticated()">
+      <a routerLink="/dashboard" routerLinkActive="active"><i class="fa-solid fa-chart-line"></i> لوحة التحكم</a>
+      <a routerLink="/parcours" routerLinkActive="active"><i class="fa-solid fa-book-open"></i> المسارات</a>
+      <a routerLink="/stats" routerLinkActive="active"><i class="fa-solid fa-trophy"></i> الإحصائيات</a>
+    </div>
+
+    <div class="nav-actions">
+      <ng-container *ngIf="authService.isAuthenticated(); else unauth">
+        <button class="btn-outline btn-sm" (click)="onLogout()">
+          <i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج
+        </button>
+      </ng-container>
+      <ng-template #unauth>
+        <a routerLink="/login" class="btn-outline btn-sm">تسجيل الدخول</a>
+        <a routerLink="/register" class="btn-primary btn-sm">إنشاء حساب</a>
+      </ng-template>
+    </div>
+  </div>
+</nav>

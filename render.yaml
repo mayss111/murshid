@@ -1,0 +1,63 @@
+# Render Blueprint - Murshid (tout gratuit)
+# Deploie 3 services : PostgreSQL + backend Spring Boot (Docker) + frontend Angular (statique).
+# IA : Groq (API cloud, gratuite). Renseignez GROQ_API_KEY dans le dashboard Render.
+#
+# Deploiement : Render > New > Blueprint > selectionnez ce repo.
+# Docs : https://render.com/docs/blueprint-spec
+
+databases:
+  - name: murshid-db
+    databaseName: murshid_db
+    user: murshid
+    plan: free
+
+services:
+  # --- Backend Spring Boot (Docker) ---
+  - type: web
+    name: murshid-backend
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: murshid-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: murshid-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: murshid-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: murshid-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: murshid-db
+          property: password
+      - key: APP_JWTSECRET
+        generateValue: true
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      # A renseigner manuellement dans le dashboard Render (secret) :
+      - key: GROQ_API_KEY
+        sync: false
+
+  # --- Frontend Angular (site statique) ---
+  - type: web
+    name: murshid-frontend
+    runtime: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist/murshid-web
+    routes:
+      # SPA fallback : toute route renvoie vers index.html
+      - type: rewrite
+        source: /*
+        destination: /index.html

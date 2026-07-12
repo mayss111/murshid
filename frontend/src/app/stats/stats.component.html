@@ -1,0 +1,41 @@
+<div class="container animate-fade-in">
+  <div class="page-header">
+    <h1 class="gradient-text">الإحصائيات والحصيلة التعليمية</h1>
+    <p>تابع انتظامك وتطوّر معرفتك الدينية.</p>
+  </div>
+
+  <div class="grid-3 stats-grid">
+    <div class="stat-card glass-card">
+      <div class="stat-icon gold-glow"><i class="fa-solid fa-fire"></i></div>
+      <div class="stat-info">
+        <h3>سلسلة الدراسة</h3>
+        <p class="stat-value gold-text">{{ studyDaysStreak }} أيام متتالية</p>
+      </div>
+    </div>
+
+    <div class="stat-card glass-card">
+      <div class="stat-icon emerald-glow"><i class="fa-solid fa-list-check"></i></div>
+      <div class="stat-info">
+        <h3>الأسئلة المجابة</h3>
+        <p class="stat-value">{{ totalQuestionsAnswered }}</p>
+      </div>
+    </div>
+
+    <div class="stat-card glass-card">
+      <div class="stat-icon teal-glow"><i class="fa-solid fa-bullseye"></i></div>
+      <div class="stat-info">
+        <h3>دقّة الذكاء الاصطناعي</h3>
+        <p class="stat-value">{{ successRate }}%</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="glass-panel" style="padding: 2.5rem; text-align: center;">
+    <i class="fa-solid fa-award gold-icon" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+    <h2>وسام التميّز: طالب مجتهد</h2>
+    <p style="color: var(--text-muted); max-width: 600px; margin: 0.5rem auto 1.5rem auto;">
+      تهانينا على انتظامك! طلب العلم الشرعي بركة متواصلة. واصل هذا المسار الروحي والفكري.
+    </p>
+    <a routerLink="/dashboard" class="btn-primary">العودة إلى دروسي</a>
+  </div>
+</div>

@@ -1,0 +1,69 @@
+# Production compose for Oracle Cloud Free Tier (ARM, 4 OCPU / 24GB RAM)
+# IA locale via Ollama (llama3.2) -> pas d'appel cloud, plus de confidentialite.
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: murshid-db
+    environment:
+      POSTGRES_DB: murshid_db
+      POSTGRES_USER: murshid
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U murshid"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks: [murshid]
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: murshid-ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    networks: [murshid]
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: murshid-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/murshid_db
+      SPRING_DATASOURCE_USERNAME: murshid
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      OLLAMA_API_URL: http://ollama:11434
+      OLLAMA_MODEL: llama3.2
+      APP_JWTSECRET: ${JWT_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    restart: unless-stopped
+    networks: [murshid]
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: murshid-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks: [murshid]
+
+volumes:
+  postgres_data:
+  ollama_data:
+
+networks:
+  murshid:
+    driver: bridge

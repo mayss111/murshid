@@ -1,0 +1,88 @@
+<div class="container animate-fade-in">
+  <div class="welcome-banner glass-panel">
+    <div class="welcome-text">
+      <h2>As-salamu alaykum, <span class="gold-text">{{ user?.firstName || 'طالب' }}</span> ! 👋</h2>
+      <p>مرحباً بك في مساحة تعلّمك المخصّصة. واصل تطوير معرفتك مع مساعد مرشد الذكي.</p>
+    </div>
+    <div class="welcome-badge">
+      <span class="badge badge-gold"><i class="fa-solid fa-star"></i> المستوى الحالي: {{ user?.niveauActuel || 1 }}</span>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid-3 stats-grid">
+    <div class="stat-card glass-card">
+      <div class="stat-icon gold-glow"><i class="fa-solid fa-gem"></i></div>
+      <div class="stat-info">
+        <h3>إجمالي النقاط</h3>
+        <p class="stat-value gradient-text">{{ totalPoints }} نقطة</p>
+      </div>
+    </div>
+
+    <div class="stat-card glass-card">
+      <div class="stat-icon emerald-glow"><i class="fa-solid fa-circle-check"></i></div>
+      <div class="stat-info">
+        <h3>المسارات المكتملة</h3>
+        <p class="stat-value">{{ completedCount }}</p>
+      </div>
+    </div>
+
+    <div class="stat-card glass-card">
+      <div class="stat-icon teal-glow"><i class="fa-solid fa-book-bookmark"></i></div>
+      <div class="stat-info">
+        <h3>المواد النشطة</h3>
+        <p class="stat-value">{{ activeCount }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Learning Paths Section -->
+  <div class="section-container">
+    <div class="section-header">
+      <div>
+        <h2>مسارات تعلّمي</h2>
+        <p>تابع تقدّمك خطوة بخطوة وأجرِ اختباراتك في الوقت الفعلي.</p>
+      </div>
+      <a routerLink="/parcours/new" class="btn-primary">
+      <i class="fa-solid fa-plus-circle"></i> مسار ذكي جديد
+      </a>
+    </div>
+
+    <div *ngIf="loading" class="loading-state">
+      <i class="fa-solid fa-spinner fa-spin gold-text"></i> جارٍ تحميل المسارات المخصّصة...
+    </div>
+
+    <div *ngIf="!loading && parcours.length === 0" class="empty-state glass-card">
+      <i class="fa-solid fa-compass gold-icon"></i>
+      <h3>لا توجد مسارات نشطة حالياً</h3>
+      <p>ابدأ بتوليد أول مسار مخصّص لك مع الذكاء الاصطناعي الخاص بنا.</p>
+      <a routerLink="/parcours/new" class="btn-primary" style="margin-top: 1rem;">توليد مساري الأول</a>
+    </div>
+
+    <div class="grid-2 parcours-grid" *ngIf="!loading && parcours.length > 0">
+      <div *ngFor="let p of parcours" class="parcours-card glass-card">
+        <div class="card-top">
+          <span class="badge badge-emerald"><i class="fa-solid fa-graduation-cap"></i> {{ p.matiere }}</span>
+          <span class="badge badge-gold">المستوى {{ p.niveauActuel }}</span>
+        </div>
+
+        <h3>{{ p.titre }}</h3>
+        <p class="description">{{ p.description }}</p>
+
+        <div class="progress-section">
+          <div class="progress-header">
+            <span>التقدّم</span>
+            <span class="gold-text">{{ p.progressionPourcent || 0 }}%</span>
+          </div>
+          <app-progress-bar [value]="p.progressionPourcent || 0" [showLabel]="false"></app-progress-bar>
+        </div>
+
+        <div class="card-actions">
+          <a [routerLink]="['/parcours', p.id]" class="btn-secondary w-full">
+            <i class="fa-solid fa-play"></i> متابعة المسار
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

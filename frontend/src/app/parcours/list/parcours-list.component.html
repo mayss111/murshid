@@ -1,0 +1,40 @@
+<div class="container animate-fade-in">
+  <div class="section-header">
+    <div>
+      <h1 class="gradient-text">جميع مسارات تعلّمك</h1>
+      <p>استكشف مناهجك المولّدة بالذكاء الاصطناعي وتابع تعلّمك في الإسلام.</p>
+    </div>
+    <a routerLink="/parcours/new" class="btn-primary">
+      <i class="fa-solid fa-plus"></i> مسار جديد
+    </a>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <i class="fa-solid fa-spinner fa-spin gold-text"></i> جارٍ تحميل القائمة...
+  </div>
+
+  <div class="grid-3 parcours-grid" *ngIf="!loading">
+    <div *ngFor="let p of parcoursList" class="parcours-card glass-card">
+      <div class="card-top">
+        <span class="badge badge-emerald">{{ p.matiere }}</span>
+        <span class="badge badge-gold">المستوى {{ p.niveauActuel }}</span>
+      </div>
+      <h3>{{ p.titre }}</h3>
+      <p class="description">{{ p.description }}</p>
+      
+      <div class="progress-section">
+        <div class="progress-header">
+          <span>التقدّم</span>
+          <span class="gold-text">{{ p.progressionPourcent || 0 }}%</span>
+        </div>
+        <app-progress-bar [value]="p.progressionPourcent || 0" [showLabel]="false"></app-progress-bar>
+      </div>
+
+      <div class="card-actions">
+        <a [routerLink]="['/parcours', p.id]" class="btn-secondary w-full">
+          <i class="fa-solid fa-book-open"></i> عرض
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

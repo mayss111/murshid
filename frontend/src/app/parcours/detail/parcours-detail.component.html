@@ -1,0 +1,69 @@
+<div class="container animate-fade-in" *ngIf="parcours">
+  <div class="detail-header glass-panel">
+    <div class="header-top">
+      <a routerLink="/parcours" class="btn-outline btn-sm"><i class="fa-solid fa-arrow-right"></i> العودة إلى المسارات</a>
+      <div class="header-badges">
+        <span class="badge badge-emerald">{{ parcours.matiere }}</span>
+        <span class="badge badge-gold">المستوى {{ parcours.niveauActuel }} ➔ {{ parcours.niveauCible }}</span>
+      </div>
+    </div>
+
+    <h1 class="gradient-text">{{ parcours.titre }}</h1>
+    <p class="description-full">{{ parcours.description }}</p>
+
+    <div class="progression-box">
+      <div class="prog-info">
+        <span>التقدّم العام</span>
+        <span class="gold-text font-bold">{{ parcours.progressionPourcent || 0 }}%</span>
+      </div>
+      <app-progress-bar [value]="parcours.progressionPourcent || 0" [showLabel]="false"></app-progress-bar>
+    </div>
+  </div>
+
+  <div class="lessons-section">
+    <h2>دروس المنهج ({{ parcours.lecons?.length || 0 }})</h2>
+
+    <div class="lessons-list">
+      <div *ngFor="let lecon of parcours.lecons; let i = index" class="lesson-card glass-card">
+        <div class="lesson-number">{{ i + 1 }}</div>
+        <div class="lesson-body">
+          <h3>{{ lecon.titre }}</h3>
+          <p class="lesson-summary">الدرس الكامل متاح للقراءة المركّزة مع الحفاظ على الفقرات.</p>
+          <div class="lesson-meta">
+            <span><i class="fa-solid fa-list-check gold-text"></i> {{ lecon.questions?.length || 0 }} أسئلة</span>
+          </div>
+        </div>
+        <div class="lesson-action">
+          <button type="button" class="btn-secondary" (click)="openLessonModal(lecon)">
+            <i class="fa-solid fa-book-open-reader"></i> قراءة الدرس
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lesson-modal-overlay" *ngIf="selectedLesson" (click)="closeLessonModal()">
+    <div class="lesson-modal glass-panel" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <span class="badge badge-gold">الدرس {{ selectedLesson.ordreSequence }}</span>
+          <h2>{{ selectedLesson.titre }}</h2>
+        </div>
+        <button type="button" class="modal-close" (click)="closeLessonModal()" aria-label="إغلاق">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-content arabic-font">
+        {{ getSelectedLessonContent() }}
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-outline" (click)="closeLessonModal()">إغلاق</button>
+        <a [routerLink]="['/quiz', selectedLesson.id]" class="btn-primary" (click)="closeLessonModal()">
+          <i class="fa-solid fa-circle-play"></i> الانتقال إلى الاختبار
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

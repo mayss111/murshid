@@ -1,0 +1,81 @@
+.quiz-card {
+  padding: 2.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.quiz-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border-light);
+  padding-bottom: 1.25rem;
+}
+
+.quiz-header h2 {
+  font-size: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.question-counter {
+  font-weight: 700;
+  color: var(--primary-gold);
+  background: rgba(212, 175, 55, 0.15);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-full);
+  font-size: 0.9rem;
+}
+
+.question-text {
+  font-size: 1.3rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  color: #FFF;
+}
+
+.answer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.answer-section label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.evaluation-box {
+  margin-top: 2rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(14, 34, 27, 0.9) 100%);
+  border: 1px solid var(--emerald-glow);
+}
+
+.eval-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.points-badge {
+  background: rgba(212, 175, 55, 0.2);
+  color: var(--primary-gold);
+  font-weight: 800;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-md);
+}
+
+.eval-body {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #E5E7EB;
+  margin-bottom: 1.5rem;
+}
+
+.eval-actions {
+  display: flex;
+  justify-content: flex-end;
+}

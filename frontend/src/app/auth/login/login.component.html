@@ -1,0 +1,38 @@
+<div class="auth-container">
+  <div class="auth-card glass-panel animate-fade-in">
+    <div class="auth-header">
+      <i class="fa-solid fa-kaaba gold-icon"></i>
+      <h1 class="gradient-text">Murshid <span class="arabic-font gold-text">مُرشِد</span></h1>
+        <p>تسجيل الدخول إلى مساحة تعلّمك المخصّصة</p>
+    </div>
+
+    <form (ngSubmit)="onLogin()" class="auth-form">
+      <div class="form-group">
+        <label><i class="fa-solid fa-envelope"></i> البريد الإلكتروني</label>
+        <input type="email" [(ngModel)]="email" name="email" class="form-input" placeholder="exemple@domaine.com" required>
+      </div>
+
+      <div class="form-group">
+        <label><i class="fa-solid fa-lock"></i> كلمة المرور</label>
+        <input type="password" [(ngModel)]="password" name="password" class="form-input" placeholder="••••••••" required>
+      </div>
+
+      <button type="submit" class="btn-primary w-full" [disabled]="loading">
+        <i class="fa-solid fa-right-to-bracket" *ngIf="!loading"></i>
+        <span>{{ loading ? 'جارٍ تسجيل الدخول...' : 'تسجيل الدخول' }}</span>
+      </button>
+
+      <div *ngIf="error" class="error-alert">
+        <i class="fa-solid fa-triangle-exclamation"></i> {{ error }}
+      </div>
+    </form>
+
+    <div class="demo-box" (click)="fillDemoUser()">
+      <p><i class="fa-solid fa-lightbulb gold-text"></i> حساب تجريبي سريع : <strong>ahmed&#64;example.com</strong> (انقر للتعبئة)</p>
+    </div>
+
+    <div class="auth-footer">
+      <p>ليس لديك حساب بعد؟ <a routerLink="/register" class="gold-text">سجّل مجاناً</a></p>
+    </div>
+  </div>
+</div>

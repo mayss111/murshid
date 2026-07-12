@@ -1,0 +1,34 @@
+<div class="auth-container">
+  <div class="auth-card glass-panel animate-fade-in" style="max-width: 500px;">
+    <div class="auth-header">
+      <i class="fa-solid fa-wand-magic-sparkles gold-icon"></i>
+      <h1 class="gradient-text">مولّد التعلّم بالذكاء الاصطناعي</h1>
+      <p>سيعمل الذكاء الاصطناعي LLaMA 3 على إعداد برنامج تعلّم مخصّص لك.</p>
+    </div>
+
+    <form (ngSubmit)="onGenerer()" class="auth-form">
+      <div class="form-group">
+        <label><i class="fa-solid fa-book"></i> اختر مادةً</label>
+        <select [(ngModel)]="matiere" name="matiere" class="form-select" style="font-size: 1.05rem; padding: 1rem;">
+          <option value="Tajweed">Tajweed (تجويد القرآن) — فن الترتيل</option>
+          <option value="Fiqh">Fiqh (الفقه الإسلامي) — الفقه والعمل</option>
+          <option value="Hadith">Hadith (الحديث النبوي) — الأحاديث النبوية</option>
+          <option value="Tafsir">Tafsir (تفسير القرآن) — التفسير والتدبّر</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn-primary w-full" [disabled]="loading" style="padding: 1rem;">
+        <i class="fa-solid fa-robot" *ngIf="!loading"></i>
+        <span>{{ loading ? "جارٍ توليد المسار بالذكاء الاصطناعي..." : "توليد مساري المخصّص" }}</span>
+      </button>
+
+      <div *ngIf="error" class="error-alert">
+        <i class="fa-solid fa-triangle-exclamation"></i> {{ error }}
+      </div>
+    </form>
+
+    <div class="auth-footer">
+      <a routerLink="/dashboard" class="btn-outline btn-sm">إلغاء والعودة إلى لوحة التحكم</a>
+    </div>
+  </div>
+</div>

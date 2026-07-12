@@ -1,0 +1,59 @@
+<div class="container animate-fade-in" *ngIf="!loading && questions.length > 0">
+  <div class="quiz-card glass-panel">
+    <div class="quiz-header">
+      <div>
+        <span class="badge badge-gold">Leçon : {{ lecon?.titre }}</span>
+        <h2>التقييم والتمرين التفاعلي</h2>
+      </div>
+      <div class="question-counter">
+        السؤال {{ currentQuestionIndex + 1 }} من {{ questions.length }}
+      </div>
+    </div>
+
+    <div class="question-box">
+      <h3 class="question-text">{{ questions[currentQuestionIndex].texte }}</h3>
+
+      <div class="answer-section" *ngIf="!submitted">
+        <label>أدخل إجابتك المكتوبة:</label>
+        <textarea 
+          [(ngModel)]="userAnswer" 
+          class="form-textarea" 
+          rows="4" 
+          placeholder="اكتب إجابتك هنا بدقّة..."
+        ></textarea>
+        
+        <button (click)="submitAnswer()" class="btn-primary" [disabled]="submitting || !userAnswer.trim()">
+          <i class="fa-solid fa-paper-plane" *ngIf="!submitting"></i>
+          <span>{{ submitting ? 'جارٍ التقييم بالذكاء الاصطناعي...' : 'إرسال إجابتي' }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Evaluation Feedback Box -->
+    <div *ngIf="submitted" class="evaluation-box glass-card animate-fade-in">
+      <div class="eval-header">
+        <div class="points-badge">
+          <i class="fa-solid fa-trophy gold-text"></i> +{{ points }} نقاط مكتسبة !
+        </div>
+        <h4>تقييم فوري بالذكاء الاصطناعي</h4>
+      </div>
+      <p class="eval-body">{{ evaluation }}</p>
+
+      <div class="eval-actions">
+        <button *ngIf="currentQuestionIndex < questions.length - 1" (click)="nextQuestion()" class="btn-primary">
+          السؤال التالي <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <button *ngIf="currentQuestionIndex === questions.length - 1" (click)="nextQuestion()" class="btn-primary">
+          إنهاء الاختبار والعودة إلى لوحة التحكم <i class="fa-solid fa-check-double"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container" *ngIf="!loading && questions.length === 0">
+  <div class="glass-card text-center" style="padding: 3rem;">
+    <h3>لا توجد أسئلة متاحة في هذا الدرس.</h3>
+    <a routerLink="/dashboard" class="btn-primary" style="margin-top: 1rem;">العودة إلى لوحة التحكم</a>
+  </div>
+</div>
