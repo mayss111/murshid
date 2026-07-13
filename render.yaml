@@ -40,7 +40,6 @@ services:
     name: murshid-frontend
     runtime: static
     plan: free
-    region: frankfurt
     buildCommand: cd frontend && npm install && npx ng build
     staticPublishPath: ./frontend/dist/murshid-web/browser
     envVars:
