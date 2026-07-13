@@ -49,7 +49,10 @@ Le frontend appelle le backend a l'adresse definie dans
 `frontend/src/environments/environment.prod.ts` :
 
 ```ts
-apiUrl: 'https://murshid-backend.onrender.com/api'
+apiUrl: 'https://backend.onrender.com/api'
+
+
+
 ```
 
 - Si votre service backend s'appelle bien **`murshid-backend`**, c'est bon.

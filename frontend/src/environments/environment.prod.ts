@@ -4,5 +4,5 @@
 // Si vous renommez le service, mettez cette valeur a jour.
 export const environment = {
   production: true,
-  apiUrl: 'https://murshid-backend.onrender.com/api'
+  apiUrl: 'https://backend.onrender.com/api'
 };

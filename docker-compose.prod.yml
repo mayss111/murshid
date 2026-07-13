@@ -32,7 +32,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: murshid-backend
+    container_name: backend
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/murshid_db
       SPRING_DATASOURCE_USERNAME: murshid
@@ -52,7 +52,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: murshid-frontend
+    container_name: frontend
     ports:
       - "80:80"
     depends_on:
