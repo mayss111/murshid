@@ -5,6 +5,8 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.zaxxer.hikari.HikariDataSource;
+
 import javax.sql.DataSource;
 
 @Configuration
@@ -26,6 +28,8 @@ public class DataSourceConfig {
             jdbcUrl = "jdbc:" + jdbcUrl;
         }
         return DataSourceBuilder.create()
+                .type(HikariDataSource.class)
+                .driverClassName("org.postgresql.Driver")
                 .url(jdbcUrl)
                 .username(username)
                 .password(password)
