@@ -41,7 +41,7 @@ services:
     name: murshid-frontend
     runtime: static
     buildCommand: cd frontend && npm install && node ./node_modules/@angular/cli/bin/ng.js build --configuration production
-    staticPublishPath: ./dist/murshid-web/browser
+    staticPublishPath: ./frontend/dist/murshid-web/browser
     envVars:
       - key: NODE_VERSION
         value: "20"
