@@ -4,7 +4,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import org.postgresql.ds.PGSimpleDataSource;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 import javax.sql.DataSource;
 
@@ -26,10 +27,13 @@ public class DataSourceConfig {
         if (jdbcUrl != null && (jdbcUrl.startsWith("postgresql://") || jdbcUrl.startsWith("postgres://"))) {
             jdbcUrl = "jdbc:" + jdbcUrl;
         }
-        PGSimpleDataSource ds = new PGSimpleDataSource();
-        ds.setUrl(jdbcUrl);
-        ds.setUser(username);
-        ds.setPassword(password);
-        return ds;
+        HikariConfig config = new HikariConfig();
+        config.setDriverClassName("org.postgresql.Driver");
+        config.setJdbcUrl(jdbcUrl);
+        config.setUsername(username);
+        config.setPassword(password);
+        config.setMaximumPoolSize(2);
+        config.setInitializationFailTimeout(0);
+        return new HikariDataSource(config);
     }
 }
