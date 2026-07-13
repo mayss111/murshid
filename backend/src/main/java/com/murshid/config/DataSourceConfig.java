@@ -27,6 +27,13 @@ public class DataSourceConfig {
         if (jdbcUrl != null && (jdbcUrl.startsWith("postgresql://") || jdbcUrl.startsWith("postgres://"))) {
             jdbcUrl = "jdbc:" + jdbcUrl;
         }
+        // Dans un fat-JAR, le driver n'est pas auto-enregistre aupres de DriverManager.
+        // On le charge explicitement pour qu'Hikari (DriverDataSource) puisse le resoudre.
+        try {
+            Class.forName("org.postgresql.Driver");
+        } catch (ClassNotFoundException ex) {
+            throw new IllegalStateException("Driver PostgreSQL introuvable", ex);
+        }
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(jdbcUrl);
         config.setUsername(username);
