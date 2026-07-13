@@ -23,11 +23,13 @@ services:
     healthCheckPath: /health
     envVars:
       # URL de connexion complete fournie par Render (format postgres://...).
-      # Spring convertit automatiquement en jdbc:postgresql:// (accepte par le driver).
-      - key: SPRING_DATASOURCE_URL
+      # On prefixe obligatoirement en jdbc: car Spring Boot 3.3 ne le fait plus automatiquement.
+      - key: MurshidDbConn
         fromDatabase:
           name: murshid-db
           property: connectionString
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:${MurshidDbConn}
       - key: APP_JWTSECRET
         generateValue: true
       - key: GROQ_MODEL
