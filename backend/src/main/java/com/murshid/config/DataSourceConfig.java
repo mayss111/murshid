@@ -1,10 +1,10 @@
 package com.murshid.config;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import javax.sql.DataSource;
@@ -27,12 +27,12 @@ public class DataSourceConfig {
         if (jdbcUrl != null && (jdbcUrl.startsWith("postgresql://") || jdbcUrl.startsWith("postgres://"))) {
             jdbcUrl = "jdbc:" + jdbcUrl;
         }
-        return DataSourceBuilder.create()
-                .type(HikariDataSource.class)
-                .driverClassName("org.postgresql.Driver")
-                .url(jdbcUrl)
-                .username(username)
-                .password(password)
-                .build();
+        HikariConfig config = new HikariConfig();
+        config.setDriverClassName("org.postgresql.Driver");
+        config.setJdbcUrl(jdbcUrl);
+        config.setUsername(username);
+        config.setPassword(password);
+        config.setMaximumPoolSize(2);
+        return new HikariDataSource(config);
     }
 }
