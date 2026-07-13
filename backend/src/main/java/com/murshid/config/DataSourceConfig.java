@@ -28,7 +28,6 @@ public class DataSourceConfig {
             jdbcUrl = "jdbc:" + jdbcUrl;
         }
         HikariConfig config = new HikariConfig();
-        config.setDriverClassName("org.postgresql.Driver");
         config.setJdbcUrl(jdbcUrl);
         config.setUsername(username);
         config.setPassword(password);
