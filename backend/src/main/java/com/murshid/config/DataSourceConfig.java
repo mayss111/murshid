@@ -4,8 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
+import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
 
@@ -27,19 +26,10 @@ public class DataSourceConfig {
         if (jdbcUrl != null && (jdbcUrl.startsWith("postgresql://") || jdbcUrl.startsWith("postgres://"))) {
             jdbcUrl = "jdbc:" + jdbcUrl;
         }
-        // Dans un fat-JAR, le driver n'est pas auto-enregistre aupres de DriverManager.
-        // On le charge explicitement pour qu'Hikari (DriverDataSource) puisse le resoudre.
-        try {
-            Class.forName("org.postgresql.Driver");
-        } catch (ClassNotFoundException ex) {
-            throw new IllegalStateException("Driver PostgreSQL introuvable", ex);
-        }
-        HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(jdbcUrl);
-        config.setUsername(username);
-        config.setPassword(password);
-        config.setMaximumPoolSize(2);
-        config.setInitializationFailTimeout(0);
-        return new HikariDataSource(config);
+        PGSimpleDataSource ds = new PGSimpleDataSource();
+        ds.setUrl(jdbcUrl);
+        ds.setUser(username);
+        ds.setPassword(password);
+        return ds;
     }
 }
