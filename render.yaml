@@ -22,26 +22,11 @@ services:
     dockerContext: ./backend
     healthCheckPath: /health
     envVars:
-      - key: DB_HOST
+      # URL de connexion complete fournie par Render (la plus fiable)
+      - key: SPRING_DATASOURCE_URL
         fromDatabase:
           name: murshid-db
-          property: host
-      - key: DB_PORT
-        fromDatabase:
-          name: murshid-db
-          property: port
-      - key: DB_NAME
-        fromDatabase:
-          name: murshid-db
-          property: database
-      - key: DB_USER
-        fromDatabase:
-          name: murshid-db
-          property: user
-      - key: DB_PASSWORD
-        fromDatabase:
-          name: murshid-db
-          property: password
+          property: connectionString
       - key: APP_JWTSECRET
         generateValue: true
       - key: GROQ_MODEL
@@ -54,8 +39,13 @@ services:
   - type: web
     name: murshid-frontend
     runtime: static
-    buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: ./frontend/dist/murshid-web
+    plan: free
+    region: frankfurt
+    buildCommand: cd frontend && npm install && npx ng build
+    staticPublishPath: ./frontend/dist/murshid-web/browser
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
     routes:
       # SPA fallback : toute route renvoie vers index.html
       - type: rewrite
