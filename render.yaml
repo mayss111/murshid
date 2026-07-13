@@ -22,11 +22,14 @@ services:
     dockerContext: ./backend
     healthCheckPath: /health
     envVars:
-      # URL de connexion complete fournie par Render (la plus fiable)
-      - key: SPRING_DATASOURCE_URL
+      # URL de connexion complete fournie par Render (format postgresql://...).
+      # Spring/Hibernate exige le prefix jdbc: -> on le prefixe via SPRING_DATASOURCE_JDBC_URL.
+      - key: SPRING_DATASOURCE_JDBC_URL
         fromDatabase:
           name: murshid-db
           property: connectionString
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:${SPRING_DATASOURCE_JDBC_URL}
       - key: APP_JWTSECRET
         generateValue: true
       - key: GROQ_MODEL
@@ -39,7 +42,7 @@ services:
   - type: web
     name: murshid-frontend
     runtime: static
-    buildCommand: cd frontend && npm install && npx ng build
+    buildCommand: cd frontend && npm install && node ./node_modules/@angular/cli/bin/ng.js build --configuration production
     staticPublishPath: ./frontend/dist/murshid-web/browser
     envVars:
       - key: NODE_VERSION
