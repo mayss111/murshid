@@ -40,7 +40,7 @@ services:
   - type: web
     name: murshid-frontend
     runtime: static
-    buildCommand: cd frontend && npm install && node ./node_modules/@angular/cli/bin/ng.js build --configuration production
+    buildCommand: cd frontend && npm install && cd .. && node ./frontend/node_modules/@angular/cli/bin/ng.js build --configuration production --project murshid-web --output-path frontend/dist/murshid-web/browser
     staticPublishPath: frontend/dist/murshid-web/browser
     envVars:
       - key: NODE_VERSION
