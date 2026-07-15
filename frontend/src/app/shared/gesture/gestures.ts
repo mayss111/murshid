@@ -44,6 +44,8 @@ export interface GestureAction {
   scroll?: -1 | 1;
   /** When true, dispatch a real click at the virtual cursor position. */
   click?: boolean;
+  /** When true, toggle text-to-speech reading of the page content. */
+  read?: boolean;
   /** Optional label shown in the UI. */
   label?: string;
 }
@@ -63,6 +65,7 @@ export const DEFAULT_GESTURE_ACTIONS: GestureAction[] = [
   { gesture: GestureType.SWIPE_RIGHT, forward: true, label: 'التالي (تمرير)' },
   { gesture: GestureType.SWIPE_UP, scroll: -1, label: 'تمرير لأعلى' },
   { gesture: GestureType.SWIPE_DOWN, scroll: 1, label: 'تمرير لأسفل' },
+  { gesture: GestureType.OK, read: true, label: 'تشغيل/إيقاف القراءة بالصوت' },
 ];
 
 export interface GestureSettings {

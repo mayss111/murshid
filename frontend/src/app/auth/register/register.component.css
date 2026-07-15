@@ -8,7 +8,7 @@
 
 .auth-card {
   width: 100%;
-  max-width: 440px;
+  max-width: 480px;
   padding: 2.5rem 2rem;
 }
 
@@ -51,22 +51,6 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-.demo-box {
-  margin-top: 1.5rem;
-  background: rgba(212, 175, 55, 0.08);
-  border: 1px dashed rgba(212, 175, 55, 0.3);
-  padding: 0.75rem;
-  border-radius: var(--radius-md);
-  font-size: 0.85rem;
-  text-align: center;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.demo-box:hover {
-  background: rgba(212, 175, 55, 0.18);
 }
 
 .auth-footer {

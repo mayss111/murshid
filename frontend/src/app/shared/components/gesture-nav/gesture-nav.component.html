@@ -42,6 +42,25 @@
         <span class="action-label" *ngIf="lastLabel">→ {{ lastLabel }}</span>
       </div>
 
+      <div class="reader" *ngIf="speechSupported">
+        <div class="reader-status" [class.active]="reading">
+          <span class="dot"></span>
+          {{ reading ? 'جارٍ القراءة بالصوت' : 'القراءة متوقفة' }}
+        </div>
+        <button class="reader-btn" (click)="stopReading()" [disabled]="!reading">
+          إيقاف القراءة
+        </button>
+        <label class="reader-lang">
+          اللغة :
+          <select [value]="speechLang" (change)="setSpeechLang($any($event.target).value)">
+            <option value="fr-FR">Français</option>
+            <option value="ar-SA">العربية</option>
+            <option value="en-US">English</option>
+            <option value="es-ES">Español</option>
+          </select>
+        </label>
+      </div>
+
       <details class="settings" [open]="false">
         <summary>الإعدادات</summary>
         <label>
@@ -89,6 +108,7 @@
         <li><b>✌️</b> {{ gestureLabel(GestureType.PEACE) }}</li>
         <li><b>👍</b> {{ gestureLabel(GestureType.THUMBS_UP) }}</li>
         <li><b>🤏</b> {{ gestureLabel(GestureType.PINCH) }}</li>
+        <li><b>👌</b> {{ gestureLabel(GestureType.OK) }}</li>
         <li><b>✊</b> {{ gestureLabel(GestureType.FIST) }}</li>
         <li><b>↔️</b> {{ gestureLabel(GestureType.SWIPE_LEFT) }} / {{ gestureLabel(GestureType.SWIPE_RIGHT) }}</li>
         <li><b>↕️</b> {{ gestureLabel(GestureType.SWIPE_UP) }} / {{ gestureLabel(GestureType.SWIPE_DOWN) }}</li>

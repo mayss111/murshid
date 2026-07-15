@@ -8,10 +8,20 @@ import { AuthService } from '../../../auth/services/auth.service';
   styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent {
+  mobileOpen = false;
+
   constructor(public authService: AuthService, private router: Router) {}
 
   onLogout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  toggleMobile(): void {
+    this.mobileOpen = !this.mobileOpen;
+  }
+
+  closeMobile(): void {
+    this.mobileOpen = false;
   }
 }

@@ -122,8 +122,46 @@
   justify-content: center;
 }
 
-.loading-state, .empty-state {
+.loading-state,
+.empty-state {
   text-align: center;
   padding: 3rem;
   color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .welcome-banner {
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .welcome-text h2 {
+    font-size: 1.35rem;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .stats-grid {
+    margin-bottom: 2rem;
+  }
+
+  .card-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-banner {
+    padding: 1.25rem;
+  }
+
+  .welcome-text h2 {
+    font-size: 1.15rem;
+  }
 }

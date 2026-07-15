@@ -6,13 +6,21 @@
       <span class="arabic-font gold-text brand-ar">مُرشِد</span>
     </a>
 
-    <div class="nav-links" *ngIf="authService.isAuthenticated()">
-      <a routerLink="/dashboard" routerLinkActive="active"><i class="fa-solid fa-chart-line"></i> لوحة التحكم</a>
-      <a routerLink="/parcours" routerLinkActive="active"><i class="fa-solid fa-book-open"></i> المسارات</a>
-      <a routerLink="/stats" routerLinkActive="active"><i class="fa-solid fa-trophy"></i> الإحصائيات</a>
+    <button class="nav-toggle" (click)="toggleMobile()" aria-label="Toggle navigation" [attr.aria-expanded]="mobileOpen">
+      <span class="hamburger" [class.active]="mobileOpen">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
+    </button>
+
+    <div class="nav-links" *ngIf="authService.isAuthenticated()" [class.open]="mobileOpen">
+      <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMobile()"><i class="fa-solid fa-chart-line"></i> لوحة التحكم</a>
+      <a routerLink="/parcours" routerLinkActive="active" (click)="closeMobile()"><i class="fa-solid fa-book-open"></i> المسارات</a>
+      <a routerLink="/stats" routerLinkActive="active" (click)="closeMobile()"><i class="fa-solid fa-trophy"></i> الإحصائيات</a>
     </div>
 
-    <div class="nav-actions">
+    <div class="nav-actions" [class.open]="mobileOpen">
       <ng-container *ngIf="authService.isAuthenticated(); else unauth">
         <button class="btn-outline btn-sm" (click)="onLogout()">
           <i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج

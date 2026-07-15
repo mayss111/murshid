@@ -7,3 +7,9 @@
 .app-content {
   flex: 1;
 }
+
+@media (max-width: 768px) {
+  .app-content {
+    padding-bottom: 80px;
+  }
+}
