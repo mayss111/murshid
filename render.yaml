@@ -22,14 +22,11 @@ services:
     dockerContext: ./backend
     healthCheckPath: /health
     envVars:
-      # URL de connexion complete fournie par Render (format postgres://...).
-      # On prefixe obligatoirement en jdbc: car Spring Boot 3.3 ne le fait plus automatiquement.
-      - key: MurshidDbConn
-        fromDatabase:
-          name: murshid-db
-          property: connectionString
+      # URL externe complete (resolvable depuis n'importe quelle region, meme si
+      # backend et DB sont dans des regions differentes). Le backend frankfurt
+      # ne peut pas atteindre l'hote interne de la DB oregon.
       - key: SPRING_DATASOURCE_URL
-        value: jdbc:${MurshidDbConn}
+        value: jdbc:postgresql://murshid:tjGMcPpCBR6WeUxfCIg1Yy0HBaJcn3r6@dpg-d9akfttaeets73boe0fg-a.oregon-postgres.render.com/murshid_db_i0i4
       - key: APP_JWTSECRET
         generateValue: true
       - key: GROQ_MODEL
