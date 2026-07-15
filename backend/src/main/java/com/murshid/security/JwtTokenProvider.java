@@ -10,7 +10,11 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+
+import javax.crypto.spec.SecretKeySpec;
 
 @Component
 public class JwtTokenProvider {
@@ -25,7 +29,18 @@ public class JwtTokenProvider {
 
     private Key getSigningKey() {
         byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
-        return Keys.hmacShaKeyFor(keyBytes);
+        // HS512 exige une cle de >= 64 octets (512 bits). Render genere un secret
+        // de ~44 octets : on le derive en une cle de 64 octets via SHA-512
+        // (deterministe, donc les tokens emis restent valides).
+        if (keyBytes.length < 64) {
+            try {
+                MessageDigest digest = MessageDigest.getInstance("SHA-512");
+                keyBytes = digest.digest(keyBytes);
+            } catch (NoSuchAlgorithmException e) {
+                throw new IllegalStateException("SHA-512 algorithm not available", e);
+            }
+        }
+        return new SecretKeySpec(keyBytes, "HmacSHA512");
     }
 
     public String generateToken(User user) {
