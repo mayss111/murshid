@@ -10,7 +10,6 @@ databases:
     databaseName: murshid_db
     user: murshid
     plan: free
-    region: frankfurt
 
 services:
   # --- Backend Spring Boot (Docker) ---
@@ -23,30 +22,15 @@ services:
     dockerContext: ./backend
     healthCheckPath: /health
     envVars:
-      # Connexion DB injectee automatiquement depuis la base murshid-db.
-      # Plus de mot de passe en dur : si la base est recreee/rotée, les
-      # identifiants restent corrects. Backend et DB sont dans la meme region
-      # (frankfurt) pour que le host interne soit resolvable.
-      - key: DB_HOST
+      # Connexion DB injectee automatiquement depuis la base murshid-db via
+      # son connectionString externe (user:password@host...). Pas de mot de
+      # passe en dur : si la base est recreee/rotée, DATABASE_URL reste correct.
+      # L'URL externe fonctionne meme si backend et DB sont dans des regions
+      # differentes. Le backend extrait user/password depuis cette URL.
+      - key: DATABASE_URL
         fromDatabase:
           name: murshid-db
-          property: host
-      - key: DB_PORT
-        fromDatabase:
-          name: murshid-db
-          property: port
-      - key: DB_NAME
-        fromDatabase:
-          name: murshid-db
-          property: database
-      - key: DB_USER
-        fromDatabase:
-          name: murshid-db
-          property: user
-      - key: DB_PASSWORD
-        fromDatabase:
-          name: murshid-db
-          property: password
+          property: connectionString
       - key: APP_JWTSECRET
         generateValue: true
       - key: GROQ_MODEL
