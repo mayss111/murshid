@@ -18,4 +18,14 @@ public class HealthController {
                 "timestamp", LocalDateTime.now()
         ));
     }
+
+    @GetMapping("/")
+    public ResponseEntity<Map<String, Object>> root() {
+        return ResponseEntity.ok(Map.of(
+                "app", "Murshid Adaptive Islamic Learning API",
+                "status", "up",
+                "docs", "/health",
+                "api", "/api"
+        ));
+    }
 }
