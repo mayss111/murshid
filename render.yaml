@@ -10,6 +10,7 @@ databases:
     databaseName: murshid_db
     user: murshid
     plan: free
+    region: frankfurt
 
 services:
   # --- Backend Spring Boot (Docker) ---
@@ -22,11 +23,30 @@ services:
     dockerContext: ./backend
     healthCheckPath: /health
     envVars:
-      # URL externe complete (resolvable depuis n'importe quelle region, meme si
-      # backend et DB sont dans des regions differentes). Le backend frankfurt
-      # ne peut pas atteindre l'hote interne de la DB oregon.
-      - key: SPRING_DATASOURCE_URL
-        value: jdbc:postgresql://murshid:tjGMcPpCBR6WeUxfCIg1Yy0HBaJcn3r6@dpg-d9akfttaeets73boe0fg-a.oregon-postgres.render.com/murshid_db_i0i4
+      # Connexion DB injectee automatiquement depuis la base murshid-db.
+      # Plus de mot de passe en dur : si la base est recreee/rotée, les
+      # identifiants restent corrects. Backend et DB sont dans la meme region
+      # (frankfurt) pour que le host interne soit resolvable.
+      - key: DB_HOST
+        fromDatabase:
+          name: murshid-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: murshid-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: murshid-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: murshid-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: murshid-db
+          property: password
       - key: APP_JWTSECRET
         generateValue: true
       - key: GROQ_MODEL

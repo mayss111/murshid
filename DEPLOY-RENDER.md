@@ -85,9 +85,15 @@ apiUrl: 'https://backend.onrender.com/api'
 
 | Variable | Source | Role |
 |----------|--------|------|
-| `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | base Render | connexion PostgreSQL |
+| `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | injectees automatiquement depuis `murshid-db` (`fromDatabase`) | connexion PostgreSQL |
+| `SPRING_DATASOURCE_URL` | facultatif (override) | URL JDBC complete si besoin |
 | `APP_JWTSECRET` | genere par Render | secret JWT |
 | `GROQ_API_KEY` | **a saisir** | cle API Groq |
 | `GROQ_MODEL` | `llama-3.3-70b-versatile` | modele IA |
+
+> Les identifiants PostgreSQL ne sont plus en dur dans `render.yaml` : ils sont
+> recuperes directement depuis la base `murshid-db`. Si la base est recreee ou
+> que son mot de passe est rotate, le backend continue de fonctionner sans
+> modifier le Blueprint. Backend et DB sont tous deux en region `frankfurt`.
 
 Modeles Groq alternatifs : `llama-3.1-8b-instant` (plus rapide), `llama-3.3-70b-versatile` (meilleure qualite).
