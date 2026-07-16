@@ -23,4 +23,7 @@ export interface UserStats {
     totalPoints: number;
     completedParcours: number;
     activeParcours: number;
+    questionsAnswered: number;
+    successRate: number;
+    studyDaysStreak: number;
 }

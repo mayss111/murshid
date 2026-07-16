@@ -32,7 +32,7 @@ public class GroqService {
                 + "قدّم 3 دروس رئيسية مع أهدافها.";
             return appelGroq(prompt, 1500);
         } catch (Exception ex) {
-            logger.error("Erreur Ollama (Parcours): {}", ex.getMessage());
+            logger.error("Erreur Groq (Parcours): {}", ex.getMessage());
             return getFallbackParcoursPlan(matiere, niveauActuel);
         }
     }
@@ -52,7 +52,7 @@ public class GroqService {
                 + "أجب باللغة العربية الفصحى وبالمحتوى الدرسي فقط، دون مقدمة أو خاتمة إضافية.";
             return appelGroq(prompt, 3000);
         } catch (Exception ex) {
-            logger.error("خطأ Ollama (محتوى الدرس): {}", ex.getMessage());
+            logger.error("خطأ Groq (محتوى الدرس): {}", ex.getMessage());
             return "يتناول هذا الدرس التفاعلي بالتفصيل: " + titreLecon + ". ستتعلّم فيه الأسس الضرورية لتطوير معرفتك في " + matiere + ".";
         }
     }
@@ -99,7 +99,7 @@ public class GroqService {
                 return getFallbackQuestions(matiere, titreLecon);
             }
         } catch (Exception ex) {
-            logger.error("خطأ Ollama (أسئلة الدرس): {}", ex.getMessage());
+            logger.error("خطأ Groq (أسئلة الدرس): {}", ex.getMessage());
             return getFallbackQuestions(matiere, titreLecon);
         }
     }
@@ -164,7 +164,7 @@ public class GroqService {
                 );
             }
         } catch (Exception ex) {
-            logger.error("Erreur Ollama (Evaluation): {}", ex.getMessage());
+            logger.error("Erreur Groq (Evaluation): {}", ex.getMessage());
             return Map.of(
                 "evaluation", "إجابة جيدة! واصل تقدّمك هكذا.",
                 "points", 7,

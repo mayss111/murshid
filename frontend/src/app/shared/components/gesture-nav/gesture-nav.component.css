@@ -315,6 +315,34 @@
   color: #64748b;
 }
 
+.read-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 10px;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  background: rgba(19, 78, 74, 0.55);
+  color: #ccfbf1;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.read-page-btn:hover:not(:disabled) {
+  background: rgba(19, 78, 74, 0.8);
+  border-color: #2dd4bf;
+}
+
+.read-page-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 @media (max-width: 480px) {
   .gesture-panel {
     width: calc(100vw - 32px);

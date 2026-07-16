@@ -617,17 +617,17 @@ h1, h2, h3, h4 {
   animation: slideUp 0.5s ease-out forwards;
 }
 .logo {
-  width: 64px;
-  height: 64px;
-  object-fit: contain;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-weight: bold;
 }
 
-.logo-navbar {
-  width: 48px;
-  height: 48px;
+.logo i {
+  color: #d4a574; /* Or */
 }
 
-.logo-favicon {
-  width: 32px;
-  height: 32px;
+.logo h1 {
+  color: #1a7a4a; /* Green */
+  font-size: 32px;
 }

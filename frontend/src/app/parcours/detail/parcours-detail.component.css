@@ -162,6 +162,39 @@
   border-color: var(--primary-gold);
 }
 
+.modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.modal-read {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-light);
+  background: rgba(212, 175, 55, 0.08);
+  color: var(--primary-gold);
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-read:hover {
+  background: rgba(212, 175, 55, 0.2);
+  border-color: var(--primary-gold);
+}
+
+.modal-read.reading {
+  background: rgba(212, 175, 55, 0.25);
+  border-color: var(--primary-gold);
+  color: #FFF;
+}
+
 .modal-content {
   margin: 1rem 0 0;
   padding: 0 1.75rem 1.25rem;

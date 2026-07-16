@@ -13,4 +13,7 @@ public class UserStatsDto {
     private Integer totalPoints;
     private Long completedParcours;
     private Long activeParcours;
+    private Long questionsAnswered;
+    private Integer successRate;
+    private Integer studyDaysStreak;
 }

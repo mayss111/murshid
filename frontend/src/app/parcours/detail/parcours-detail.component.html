@@ -49,9 +49,14 @@
           <span class="badge badge-gold">الدرس {{ selectedLesson.ordreSequence }}</span>
           <h2>{{ selectedLesson.titre }}</h2>
         </div>
-        <button type="button" class="modal-close" (click)="closeLessonModal()" aria-label="إغلاق">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
+        <div class="modal-header-actions">
+          <button type="button" class="modal-read" (click)="readSelectedLesson()" [class.reading]="reading" aria-label="قراءة الدرس">
+            <i class="fa-solid" [class.fa-volume-high]="!reading" [class.fa-volume-xmark]="reading"></i>
+          </button>
+          <button type="button" class="modal-close" (click)="closeLessonModal()" aria-label="إغلاق">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
       </div>
 
       <div class="modal-content arabic-font">

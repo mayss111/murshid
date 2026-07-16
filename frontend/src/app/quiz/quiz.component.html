@@ -11,7 +11,12 @@
     </div>
 
     <div class="question-box">
-      <h3 class="question-text">{{ questions[currentQuestionIndex].texte }}</h3>
+      <div class="question-title">
+        <h3 class="question-text">{{ questions[currentQuestionIndex].texte }}</h3>
+        <button type="button" class="question-read" (click)="speakCurrentQuestion()" [class.speaking]="speaking" aria-label="قراءة السؤال">
+          <i class="fa-solid" [class.fa-volume-high]="!speaking" [class.fa-volume-xmark]="speaking"></i>
+        </button>
+      </div>
 
       <div class="answer-section" *ngIf="!submitted">
         <label>أدخل إجابتك المكتوبة:</label>

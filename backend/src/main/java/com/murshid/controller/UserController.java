@@ -53,6 +53,9 @@ public class UserController {
                 .totalPoints(progressionService.getTotalPointsByEleve(userId))
                 .completedParcours(parcoursService.compterParcoursTermines(userId))
                 .activeParcours(parcoursService.compterParcoursActifs(userId))
+                .questionsAnswered(progressionService.getQuestionsAnswered(userId))
+                .successRate(progressionService.getSuccessRate(userId))
+                .studyDaysStreak(progressionService.getStudyDaysStreak(userId))
                 .build();
         return ResponseEntity.ok(stats);
     }

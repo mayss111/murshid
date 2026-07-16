@@ -22,7 +22,7 @@
     <button class="close-btn" (click)="close()" title="إغلاق" aria-label="إغلاق">✕</button>
 
     <div class="camera-wrap">
-      <video #video autoplay playsinline muted></video>
+      <video #video playsinline muted></video>
       <canvas #canvas width="240" height="180"></canvas>
     </div>
 
@@ -41,6 +41,11 @@
         </span>
         <span class="action-label" *ngIf="lastLabel">→ {{ lastLabel }}</span>
       </div>
+
+      <button type="button" class="read-page-btn" (click)="toggleReading()" [disabled]="!speechSupported">
+        <i class="fa-solid" [class.fa-volume-high]="!reading" [class.fa-volume-xmark]="reading"></i>
+        {{ reading ? 'إيقاف القراءة' : 'قراءة الصفحة' }}
+      </button>
 
       <div class="reader" *ngIf="speechSupported">
         <div class="reader-status" [class.active]="reading">

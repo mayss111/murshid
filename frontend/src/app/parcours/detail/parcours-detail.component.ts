@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Parcours } from '../../shared/models/parcours.model';
 import { Lecon } from '../../shared/models/lecon.model';
 import { ParcoursService } from '../services/parcours.service';
+import { SpeechService } from '../../shared/services/speech.service';
 
 @Component({
   selector: 'app-parcours-detail',
@@ -13,11 +14,17 @@ export class ParcoursDetailComponent implements OnInit {
   parcours: Parcours | null = null;
   selectedLesson: Lecon | null = null;
   loading = true;
+  reading = false;
 
   constructor(
     private route: ActivatedRoute,
-    private parcoursService: ParcoursService
-  ) {}
+    private parcoursService: ParcoursService,
+    private speech: SpeechService
+  ) {
+    this.speech.state$.subscribe((st) => {
+      this.reading = st.speaking;
+    });
+  }
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -39,6 +46,7 @@ export class ParcoursDetailComponent implements OnInit {
 
   closeLessonModal(): void {
     this.selectedLesson = null;
+    this.speech.stop();
   }
 
   getSelectedLessonContent(): string {
@@ -47,5 +55,12 @@ export class ParcoursDetailComponent implements OnInit {
     }
 
     return this.selectedLesson.contenu;
+  }
+
+  readSelectedLesson(): void {
+    if (!this.selectedLesson) {
+      return;
+    }
+    this.speech.toggle(this.selectedLesson.contenu);
   }
 }
