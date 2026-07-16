@@ -1,0 +1,55 @@
+<div class="container chat-page animate-fade-in">
+  <div class="chat-card glass-panel">
+    <div class="chat-header">
+      <div class="chat-avatar">
+        <i class="fa-solid fa-kaaba gold-text"></i>
+      </div>
+      <div>
+        <h2>مُرشِد · المحادثة</h2>
+        <span class="badge badge-gold">معلّم إسلامي بالذكاء الاصطناعي</span>
+      </div>
+    </div>
+
+    <div class="chat-body" #scrollContainer>
+      <div
+        *ngFor="let msg of messages"
+        class="chat-row"
+        [class.user]="msg.role === 'user'"
+        [class.assistant]="msg.role === 'assistant'"
+      >
+        <div class="chat-bubble" [class.pending]="msg.pending">
+          <p *ngIf="!msg.pending; else typing">{{ msg.content }}</p>
+          <ng-template #typing>
+            <span class="typing"><span></span><span></span><span></span></span>
+          </ng-template>
+        </div>
+        <button
+          *ngIf="msg.role === 'assistant' && !msg.pending && msg.content"
+          type="button"
+          class="bubble-read"
+          (click)="speak(msg.content)"
+          [class.speaking]="speaking"
+          aria-label="قراءة الرد"
+        >
+          <i class="fa-solid" [class.fa-volume-high]="!speaking" [class.fa-volume-xmark]="speaking"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="chat-error" *ngIf="error">{{ error }}</div>
+
+    <div class="chat-input glass-card">
+      <textarea
+        [(ngModel)]="input"
+        (keydown)="onEnter($event)"
+        class="form-textarea chat-textarea"
+        rows="1"
+        placeholder="اكتب سؤالك هنا..."
+      ></textarea>
+      <button (click)="send()" class="btn-primary chat-send" [disabled]="sending || !input.trim()">
+        <i class="fa-solid fa-paper-plane" *ngIf="!sending"></i>
+        <i class="fa-solid fa-spinner fa-spin" *ngIf="sending"></i>
+      </button>
+    </div>
+  </div>
+</div>

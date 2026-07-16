@@ -17,6 +17,7 @@
     <div class="nav-links" *ngIf="authService.isAuthenticated()" [class.open]="mobileOpen">
       <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMobile()"><i class="fa-solid fa-chart-line"></i> لوحة التحكم</a>
       <a routerLink="/parcours" routerLinkActive="active" (click)="closeMobile()"><i class="fa-solid fa-book-open"></i> المسارات</a>
+      <a routerLink="/chat" routerLinkActive="active" (click)="closeMobile()"><i class="fa-solid fa-comments"></i> المحادثة</a>
       <a routerLink="/stats" routerLinkActive="active" (click)="closeMobile()"><i class="fa-solid fa-trophy"></i> الإحصائيات</a>
     </div>
 

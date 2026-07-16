@@ -8,6 +8,7 @@ import { ParcoursDetailComponent } from './parcours/detail/parcours-detail.compo
 import { ParcoursCreateComponent } from './parcours/create/parcours-create.component';
 import { QuizComponent } from './quiz/quiz.component';
 import { StatsComponent } from './stats/stats.component';
+import { ChatComponent } from './chat/chat.component';
 import { AuthGuard } from './shared/guards/auth.guard';
 
 const routes: Routes = [
@@ -20,6 +21,7 @@ const routes: Routes = [
   { path: 'parcours/:id', component: ParcoursDetailComponent, canActivate: [AuthGuard] },
   { path: 'quiz/:leconId', component: QuizComponent, canActivate: [AuthGuard] },
   { path: 'stats', component: StatsComponent, canActivate: [AuthGuard] },
+  { path: 'chat', component: ChatComponent, canActivate: [AuthGuard] },
   { path: '**', redirectTo: '/dashboard' }
 ];
 

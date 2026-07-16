@@ -1,11 +1,15 @@
 C:\Users\user\Desktop\game\murshid\backend\src\main\java\com\murshid\config\DataSourceConfig.java
 C:\Users\user\Desktop\game\murshid\backend\src\main\java\com\murshid\config\SecurityConfig.java
 C:\Users\user\Desktop\game\murshid\backend\src\main\java\com\murshid\controller\AuthController.java
+C:\Users\user\Desktop\game\murshid\backend\src\main\java\com\murshid\controller\ChatController.java
 C:\Users\user\Desktop\game\murshid\backend\src\main\java\com\murshid\controller\HealthController.java
 C:\Users\user\Desktop\game\murshid\backend\src\main\java\com\murshid\controller\ParcoursController.java
 C:\Users\user\Desktop\game\murshid\backend\src\main\java\com\murshid\controller\QuestionController.java
 C:\Users\user\Desktop\game\murshid\backend\src\main\java\com\murshid\controller\UserController.java
 C:\Users\user\Desktop\game\murshid\backend\src\main\java\com\murshid\dto\AuthResponseDto.java
+C:\Users\user\Desktop\game\murshid\backend\src\main\java\com\murshid\dto\ChatHistoryDto.java
+C:\Users\user\Desktop\game\murshid\backend\src\main\java\com\murshid\dto\ChatRequestDto.java
+C:\Users\user\Desktop\game\murshid\backend\src\main\java\com\murshid\dto\ChatResponseDto.java
 C:\Users\user\Desktop\game\murshid\backend\src\main\java\com\murshid\dto\EvaluationResponseDto.java
 C:\Users\user\Desktop\game\murshid\backend\src\main\java\com\murshid\dto\GenererParcoursDto.java
 C:\Users\user\Desktop\game\murshid\backend\src\main\java\com\murshid\dto\LoginDto.java

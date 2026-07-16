@@ -56,7 +56,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/", "/api/auth/**", "/health", "/h2-console/**").permitAll()
-                .requestMatchers("/api/parcours/**", "/api/users/**", "/api/question/**").authenticated()
+                .requestMatchers("/api/parcours/**", "/api/users/**", "/api/question/**", "/api/chat/**").authenticated()
                 .anyRequest().authenticated());
 
         // Fix for H2 console frame options

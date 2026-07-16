@@ -245,6 +245,51 @@ public class GroqService {
         return appelGroq(prompt, 1500);
     }
 
+    public String discuter(List<Map<String, String>> messages) {
+        try {
+            return appelGroqAvecHistorique(messages, 1000);
+        } catch (Exception ex) {
+            logger.error("Erreur Groq (Chat): {}", ex.getMessage());
+            return "عذراً، لم أتمكّن من الردّ في هذه اللحظة. حاول مرة أخرى بعد قليل.";
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private String appelGroqAvecHistorique(List<Map<String, String>> messages, int maxTokens) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        if (groqApiKey != null && !groqApiKey.isBlank()) {
+            headers.setBearerAuth(groqApiKey);
+        }
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", model);
+        requestBody.put("temperature", 0.7);
+        requestBody.put("max_tokens", maxTokens);
+        requestBody.put("messages", messages);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+        ResponseEntity<Map> response = restTemplate.postForEntity(groqApiUrl, entity, Map.class);
+
+        if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+            Object choicesObj = response.getBody().get("choices");
+            if (choicesObj instanceof List<?> choices && !choices.isEmpty()) {
+                Object first = choices.get(0);
+                if (first instanceof Map<?, ?> choiceMap) {
+                    Object messageObj = choiceMap.get("message");
+                    if (messageObj instanceof Map<?, ?> messageMap) {
+                        Object content = messageMap.get("content");
+                        if (content != null) {
+                            return content.toString().trim();
+                        }
+                    }
+                }
+            }
+        }
+        return "عذراً، لم أتمكّن من الردّ في هذه اللحظة.";
+    }
+
     private String getFallbackParcoursPlan(String matiere, int niveau) {
         return "خطة دراسية منظّمة في " + matiere + " (المستوى " + niveau + ") : 1. الأسس والمبادئ، 2. التطبيق العملي والقواعد، 3. الإتقان المتقدّم والمراجعة.";
     }

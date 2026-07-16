@@ -16,6 +16,7 @@ import { ParcoursDetailComponent } from './parcours/detail/parcours-detail.compo
 import { ParcoursCreateComponent } from './parcours/create/parcours-create.component';
 import { QuizComponent } from './quiz/quiz.component';
 import { StatsComponent } from './stats/stats.component';
+import { ChatComponent } from './chat/chat.component';
 
 // Shared Components
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
@@ -37,6 +38,7 @@ import { JwtInterceptor } from './shared/interceptors/jwt.interceptor';
     ParcoursCreateComponent,
     QuizComponent,
     StatsComponent,
+    ChatComponent,
     NavbarComponent,
     FooterComponent,
     ProgressBarComponent
