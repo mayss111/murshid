@@ -1,5 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { TtsService } from './tts.service';
 
 export interface SpeechState {
   /** Whether a text is currently being spoken or queued. */
@@ -8,34 +9,32 @@ export interface SpeechState {
   lang: string;
 }
 
-const DEFAULT_LANG = 'ar-SA';
 const ARABIC_LANG = 'ar-SA';
-const STORAGE_KEY = 'murshid.speech.lang';
 
 /**
- * Text-to-speech helper wrapping the Web Speech API (SpeechSynthesis).
- * Handles the asynchronous voice-loading race in Chrome by waiting for
- * getVoices() before speaking, and selecting an explicit Arabic voice.
+ * Arabic text-to-speech. Uses the server-side TTS endpoint (VoiceRSS) so every
+ * user hears the same Arabic voice, independent of the device's installed voices.
+ * Falls back to the browser's SpeechSynthesis (Arabic voice) if the server fails.
  */
 @Injectable({ providedIn: 'root' })
 export class SpeechService {
   private readonly _state$ = new BehaviorSubject<SpeechState>({
     speaking: false,
-    lang: this.loadLang(),
+    lang: ARABIC_LANG,
   });
 
   readonly state$: Observable<SpeechState> = this._state$.asObservable();
 
   private lastText = '';
+  private audio: HTMLAudioElement | null = null;
   private voices: SpeechSynthesisVoice[] = [];
-  private pending: { text: string; lang: string } | null = null;
+  private pending: { text: string } | null = null;
   private voicesReady = false;
 
-  constructor(private zone: NgZone) {
+  constructor(private zone: NgZone, private tts: TtsService) {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       this.loadVoices();
       window.speechSynthesis.onvoiceschanged = () => this.loadVoices();
-      this.syncSpeakingState();
     }
   }
 
@@ -48,43 +47,36 @@ export class SpeechService {
   }
 
   get supported(): boolean {
-    return typeof window !== 'undefined' && 'speechSynthesis' in window;
+    return true; // server TTS works without browser SpeechSynthesis
   }
 
-  setLang(lang: string): void {
-    this._state$.next({ ...this._state$.value, lang });
-    try {
-      localStorage.setItem(STORAGE_KEY, lang);
-    } catch {
-      /* storage may be unavailable */
-    }
-  }
-
-  /** Read the given text aloud in Arabic. Cancels any ongoing speech first. */
+  /** Read the given Arabic text aloud via the server TTS. */
   speak(text: string, lang: string = ARABIC_LANG): void {
-    if (!this.supported || !text?.trim()) {
+    const content = text?.trim();
+    if (!content) {
       return;
     }
-    this.lastText = text;
-    this.pending = null;
+    this.lastText = content;
+    this.stop();
+    this.setSpeaking(true);
 
-    if (!this.voicesReady) {
-      // Voices not loaded yet: cache and try again once they arrive.
-      this.pending = { text, lang: ARABIC_LANG };
-      this.loadVoices();
-      return;
-    }
-    this.doSpeak(text, ARABIC_LANG);
+    this.tts.speakArabic(content).subscribe({
+      next: (blob) => this.playBlob(blob, content),
+      error: () => this.speakFallback(content),
+    });
   }
 
   /** Stop any ongoing speech. */
   stop(): void {
-    if (!this.supported) {
-      return;
+    if (this.audio) {
+      this.audio.pause();
+      this.audio = null;
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
     }
     this.pending = null;
-    window.speechSynthesis.cancel();
-    this.syncSpeakingState();
+    this.setSpeaking(false);
   }
 
   /**
@@ -122,16 +114,64 @@ export class SpeechService {
     return (clone.textContent ?? '').replace(/\s+/g, ' ').trim();
   }
 
+  private playBlob(blob: Blob, text: string): void {
+    if (!blob || blob.size === 0) {
+      this.speakFallback(text);
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    this.audio = audio;
+    audio.onended = () => {
+      URL.revokeObjectURL(url);
+      this.audio = null;
+      this.setSpeaking(false);
+    };
+    audio.onerror = () => {
+      URL.revokeObjectURL(url);
+      this.audio = null;
+      this.setSpeaking(false);
+      this.speakFallback(text);
+    };
+    audio.play().catch(() => {
+      URL.revokeObjectURL(url);
+      this.audio = null;
+      this.setSpeaking(false);
+      this.speakFallback(text);
+    });
+  }
+
+  /** Fallback to the browser's Arabic speech synthesis if the server TTS fails. */
+  private speakFallback(text: string): void {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      this.setSpeaking(false);
+      return;
+    }
+    if (!this.voicesReady) {
+      this.pending = { text };
+      this.loadVoices();
+      return;
+    }
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = ARABIC_LANG;
+    utter.voice = this.pickVoice(ARABIC_LANG);
+    utter.rate = 0.95;
+    utter.pitch = 1;
+    utter.onend = () => this.setSpeaking(false);
+    utter.onerror = () => this.setSpeaking(false);
+    window.speechSynthesis.speak(utter);
+  }
+
   private loadVoices(): void {
-    if (!this.supported) {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       return;
     }
     this.voices = window.speechSynthesis.getVoices() || [];
     this.voicesReady = this.voices.length > 0;
     if (this.voicesReady && this.pending) {
-      const { text, lang } = this.pending;
+      const { text } = this.pending;
       this.pending = null;
-      this.doSpeak(text, lang);
+      this.speakFallback(text);
     }
   }
 
@@ -146,33 +186,7 @@ export class SpeechService {
     );
   }
 
-  private doSpeak(text: string, lang: string): void {
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = lang;
-    utter.voice = this.pickVoice(lang);
-    utter.rate = 0.95;
-    utter.pitch = 1;
-    utter.onstart = () => this.zone.run(() => this._state$.next({ speaking: true, lang }));
-    utter.onend = () => this.zone.run(() => this.syncSpeakingState());
-    utter.onerror = () => this.zone.run(() => this.syncSpeakingState());
-    window.speechSynthesis.speak(utter);
-  }
-
-  private syncSpeakingState(): void {
-    const speaking = this.supported && window.speechSynthesis.speaking;
-    this._state$.next({ speaking, lang: this.lang });
-  }
-
-  private loadLang(): string {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        return raw;
-      }
-    } catch {
-      /* ignore */
-    }
-    return DEFAULT_LANG;
+  private setSpeaking(value: boolean): void {
+    this.zone.run(() => this._state$.next({ speaking: value, lang: ARABIC_LANG }));
   }
 }
