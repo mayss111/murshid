@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -36,8 +37,15 @@ public class GroqService {
     @Value("${groq.model:llama-3.3-70b-versatile}")
     private String model;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public GroqService() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(15000);
+        factory.setReadTimeout(90000);
+        this.restTemplate = new RestTemplate(factory);
+    }
 
     // ====================== CHATBOT ======================
 
@@ -190,7 +198,7 @@ public class GroqService {
                     + "  {\"titre\": \"عُنوانُ الدرسِ الثانيِ\", \"contenu\": \"...\", \"questions\": [...]},\n"
                     + "  {\"titre\": \"عُنوانُ الدرسِ الثالثِ\", \"contenu\": \"...\", \"questions\": [...]}\n"
                     + "]";
-            String response = appelGroq(prompt, 4000);
+            String response = appelGroq(prompt, 2500);
             String cleaned = nettoyerReponsePourJson(response);
 
             List<Map<String, Object>> lecons = new ArrayList<>();
@@ -312,50 +320,61 @@ public class GroqService {
 
     @SuppressWarnings("unchecked")
     private String appelGroq(String prompt, int maxTokens) {
-        try {
-            if (groqApiKey == null || groqApiKey.isBlank()) {
-                throw new IllegalStateException("Clé API Groq manquante (GROQ_API_KEY non configurée).");
+        // 1 retry pour absorber le freeze/timeout du free-tier (1er appel lent)
+        Exception lastEx = null;
+        for (int attempt = 0; attempt < 2; attempt++) {
+            try {
+                return appelGroqUnsafe(prompt, maxTokens);
+            } catch (Exception ex) {
+                lastEx = ex;
+                logger.warn("Tentative Groq #{} échouée: {}", (attempt + 1), ex.getMessage());
             }
+        }
+        throw new RuntimeException("خطأ واجهة Groq: " + (lastEx != null ? lastEx.getMessage() : "échec"));
+    }
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(groqApiKey);
+    @SuppressWarnings("unchecked")
+    private String appelGroqUnsafe(String prompt, int maxTokens) {
+        if (groqApiKey == null || groqApiKey.isBlank()) {
+            throw new IllegalStateException("Clé API Groq manquante (GROQ_API_KEY non configurée).");
+        }
 
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", model);
-            requestBody.put("temperature", 0.8);
-            requestBody.put("max_tokens", maxTokens);
-            requestBody.put("messages", List.of(
-                    Map.of("role", "user", "content", prompt)
-            ));
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(groqApiKey);
 
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", model);
+        requestBody.put("temperature", 0.8);
+        requestBody.put("max_tokens", maxTokens);
+        requestBody.put("messages", List.of(
+                Map.of("role", "user", "content", prompt)
+        ));
 
-            ResponseEntity<Map> response = restTemplate.postForEntity(
-                    groqApiUrl,
-                    entity,
-                    Map.class
-            );
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                Object choicesObj = response.getBody().get("choices");
-                if (choicesObj instanceof List<?> choices && !choices.isEmpty()) {
-                    Object first = choices.get(0);
-                    if (first instanceof Map<?, ?> choiceMap) {
-                        Object messageObj = choiceMap.get("message");
-                        if (messageObj instanceof Map<?, ?> messageMap) {
-                            Object content = messageMap.get("content");
-                            if (content != null) {
-                                return content.toString();
-                            }
+        ResponseEntity<Map> response = restTemplate.postForEntity(
+                groqApiUrl,
+                entity,
+                Map.class
+        );
+
+        if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+            Object choicesObj = response.getBody().get("choices");
+            if (choicesObj instanceof List<?> choices && !choices.isEmpty()) {
+                Object first = choices.get(0);
+                if (first instanceof Map<?, ?> choiceMap) {
+                    Object messageObj = choiceMap.get("message");
+                    if (messageObj instanceof Map<?, ?> messageMap) {
+                        Object content = messageMap.get("content");
+                        if (content != null) {
+                            return content.toString();
                         }
                     }
                 }
             }
-            throw new RuntimeException("Réponse Groq invalide ou vide (statut: " + response.getStatusCode() + ").");
-        } catch (Exception ex) {
-            throw new RuntimeException("خطأ واجهة Groq: " + ex.getMessage());
         }
+        throw new RuntimeException("Réponse Groq invalide ou vide (statut: " + response.getStatusCode() + ").");
     }
 
     // ====================== NETTOYAGE JSON ======================
