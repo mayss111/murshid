@@ -42,7 +42,6 @@ export class GestureNavComponent implements OnDestroy {
   history: GestureLog[] = [];
   reading = false;
   speechSupported = false;
-  speechLang = 'fr-FR';
   settings: GestureSettings = {
     holdFrames: 3,
     cooldownMs: 1200,
@@ -63,11 +62,9 @@ export class GestureNavComponent implements OnDestroy {
       })
     );
     this.speechSupported = this.speech.supported;
-    this.speechLang = this.speech.lang;
     this.subs.push(
       this.speech.state$.subscribe((st) => {
         this.reading = st.speaking;
-        this.speechLang = st.lang;
       })
     );
     this.subs.push(this.gesture.error$.subscribe((e) => (this.error = e)));
@@ -195,10 +192,6 @@ export class GestureNavComponent implements OnDestroy {
   /** Stop reading immediately (button in the panel). */
   stopReading(): void {
     this.speech.stop();
-  }
-
-  setSpeechLang(lang: string): void {
-    this.speech.setLang(lang);
   }
 
   gestureLabel(type: GestureType): string {

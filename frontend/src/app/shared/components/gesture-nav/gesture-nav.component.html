@@ -50,20 +50,11 @@
       <div class="reader" *ngIf="speechSupported">
         <div class="reader-status" [class.active]="reading">
           <span class="dot"></span>
-          {{ reading ? 'جارٍ القراءة بالصوت' : 'القراءة متوقفة' }}
+          {{ reading ? 'جارٍ القراءة بالصوت (العربية)' : 'القراءة متوقفة' }}
         </div>
         <button class="reader-btn" (click)="stopReading()" [disabled]="!reading">
           إيقاف القراءة
         </button>
-        <label class="reader-lang">
-          اللغة :
-          <select [value]="speechLang" (change)="setSpeechLang($any($event.target).value)">
-            <option value="fr-FR">Français</option>
-            <option value="ar-SA">العربية</option>
-            <option value="en-US">English</option>
-            <option value="es-ES">Español</option>
-          </select>
-        </label>
       </div>
 
       <details class="settings" [open]="false">

@@ -9,6 +9,7 @@ export interface SpeechState {
 }
 
 const DEFAULT_LANG = 'ar-SA';
+const ARABIC_LANG = 'ar-SA';
 const STORAGE_KEY = 'murshid.speech.lang';
 
 /**
@@ -59,8 +60,8 @@ export class SpeechService {
     }
   }
 
-  /** Read the given text aloud. Cancels any ongoing speech first. */
-  speak(text: string, lang: string = this.lang): void {
+  /** Read the given text aloud in Arabic. Cancels any ongoing speech first. */
+  speak(text: string, lang: string = ARABIC_LANG): void {
     if (!this.supported || !text?.trim()) {
       return;
     }
@@ -69,11 +70,11 @@ export class SpeechService {
 
     if (!this.voicesReady) {
       // Voices not loaded yet: cache and try again once they arrive.
-      this.pending = { text, lang };
+      this.pending = { text, lang: ARABIC_LANG };
       this.loadVoices();
       return;
     }
-    this.doSpeak(text, lang);
+    this.doSpeak(text, ARABIC_LANG);
   }
 
   /** Stop any ongoing speech. */
