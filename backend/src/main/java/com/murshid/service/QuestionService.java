@@ -57,9 +57,28 @@ public class QuestionService {
                 question.getReponseAttendue()
         );
 
-        String feedbackAi = (String) evaluationResult.get("evaluation");
-        int pointsAttribues = (int) Math.round((double) evaluationResult.getOrDefault("points", 7));
-        boolean estCorrect = (boolean) evaluationResult.getOrDefault("estCorrect", true);
+        String feedbackAi = (String) evaluationResult.getOrDefault("evaluation", "إجابة جيدة! واصل تقدّمك هكذا.");
+
+        Object pointsObj = evaluationResult.get("points");
+        int pointsAttribues = 7;
+        if (pointsObj instanceof Number) {
+            pointsAttribues = (int) Math.round(((Number) pointsObj).doubleValue());
+        } else if (pointsObj instanceof String) {
+            try {
+                pointsAttribues = Integer.parseInt((String) pointsObj);
+            } catch (NumberFormatException ignored) {
+                // keep default 7
+            }
+        }
+        pointsAttribues = Math.max(0, Math.min(10, pointsAttribues));
+
+        Object estCorrectObj = evaluationResult.get("estCorrect");
+        boolean estCorrect = true;
+        if (estCorrectObj instanceof Boolean) {
+            estCorrect = (Boolean) estCorrectObj;
+        } else if (estCorrectObj instanceof String) {
+            estCorrect = Boolean.parseBoolean((String) estCorrectObj);
+        }
 
         Progression progression = progressionRepository.findByEleveIdAndQuestionId(eleveId, question.getId())
                 .orElseGet(() -> Progression.builder()
