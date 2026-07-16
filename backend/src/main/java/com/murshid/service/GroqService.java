@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -32,8 +33,17 @@ public class GroqService {
     @Value("${groq.model:llama-3.3-70b-versatile}")
     private String model;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public GroqService() {
+        this.restTemplate = new RestTemplate();
+        // Timeouts explicites pour éviter les hangs infinis sur le free-tier
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(15000);
+        factory.setReadTimeout(60000);
+        this.restTemplate.setRequestFactory(factory);
+    }
 
     public String genererParcours(String matiere, int niveauActuel) {
         try {
@@ -347,8 +357,10 @@ public class GroqService {
                     }
                 }
             }
+            logger.error("Erreur Groq (statut {}): {}", response.getStatusCode(), response.getBody());
             throw new RuntimeException("Réponse Groq invalide ou vide (statut: " + response.getStatusCode() + ").");
         } catch (Exception ex) {
+            logger.error("خطأ واجهة Groq: {}", ex.getMessage());
             throw new RuntimeException("خطأ واجهة Groq: " + ex.getMessage());
         }
     }
