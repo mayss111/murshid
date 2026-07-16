@@ -1,5 +1,6 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked, OnDestroy } from '@angular/core';
 import { ChatService } from './services/chat.service';
+import { ChatHistoryService } from './services/chat-history.service';
 import { ChatMessage } from './models/chat.model';
 import { SpeechService } from '../shared/services/speech.service';
 
@@ -8,28 +9,38 @@ import { SpeechService } from '../shared/services/speech.service';
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.css']
 })
-export class ChatComponent implements OnInit, AfterViewChecked {
+export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   messages: ChatMessage[] = [];
   input = '';
   sending = false;
   error = '';
   speaking = false;
+  listening = false;
+
+  private recognition: any = null;
+  private readonly speechLang = 'ar-SA';
 
   @ViewChild('scrollContainer') private scrollContainer!: ElementRef;
 
-  constructor(private chatService: ChatService, private speech: SpeechService) {
+  constructor(
+    private chatService: ChatService,
+    private history: ChatHistoryService,
+    private speech: SpeechService
+  ) {
     this.speech.state$.subscribe((st) => (this.speaking = st.speaking));
   }
 
   ngOnInit(): void {
-    this.messages.push({
-      role: 'assistant',
-      content: 'السلام عليكم! أنا «مُرشِد»، معلّمك الإسلامي. اسألني في التجويد أو الفقه أو الحديث أو التفسير، وأنا معك. 🌿'
-    });
+    this.messages = this.history.load();
+    this.initSpeechRecognition();
   }
 
   ngAfterViewChecked(): void {
     this.scrollToBottom();
+  }
+
+  ngOnDestroy(): void {
+    this.stopListening();
   }
 
   send(): void {
@@ -52,6 +63,7 @@ export class ChatComponent implements OnInit, AfterViewChecked {
         assistantMsg.content = res.reply;
         assistantMsg.pending = false;
         this.sending = false;
+        this.persist();
       },
       error: () => {
         assistantMsg.content = 'عذراً، حدث خطأ أثناء الاتصال. حاول مرة أخرى.';
@@ -69,8 +81,80 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     }
   }
 
+  // --- Lecture (TTS) : toujours en arabe, lit tout le message ---
   speak(text: string): void {
-    this.speech.speak(text, 'ar-SA');
+    this.speech.speak(text, this.speechLang);
+  }
+
+  // --- Micro (reconnaissance vocale) ---
+  toggleMic(): void {
+    if (!this.recognition) {
+      this.error = 'الميكروفون غير مدعوم في هذا المتصفّح.';
+      return;
+    }
+    if (this.listening) {
+      this.stopListening();
+    } else {
+      this.startListening();
+    }
+  }
+
+  private startListening(): void {
+    try {
+      this.recognition.lang = this.speechLang;
+      this.recognition.start();
+    } catch {
+      /* already started */
+    }
+  }
+
+  private stopListening(): void {
+    if (this.recognition) {
+      try {
+        this.recognition.stop();
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+
+  private initSpeechRecognition(): void {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    const rec = new SpeechRecognition();
+    rec.lang = this.speechLang;
+    rec.interimResults = true;
+    rec.continuous = false;
+
+    rec.onstart = () => {
+      this.listening = true;
+    };
+    rec.onend = () => {
+      this.listening = false;
+    };
+    rec.onerror = () => {
+      this.listening = false;
+    };
+    rec.onresult = (event: any) => {
+      let transcript = '';
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      this.input = transcript;
+    };
+
+    this.recognition = rec;
+  }
+
+  clearHistory(): void {
+    this.history.clear();
+    this.messages = [this.history.load()[0]];
+    this.error = '';
+  }
+
+  private persist(): void {
+    this.history.save(this.messages);
   }
 
   private scrollToBottom(): void {

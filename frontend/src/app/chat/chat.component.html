@@ -8,6 +8,9 @@
         <h2>مُرشِد · المحادثة</h2>
         <span class="badge badge-gold">معلّم إسلامي بالذكاء الاصطناعي</span>
       </div>
+      <button type="button" class="chat-clear" (click)="clearHistory()" aria-label="مسح المحادثة">
+        <i class="fa-solid fa-trash-can"></i> مسح المحادثة
+      </button>
     </div>
 
     <div class="chat-body" #scrollContainer>
@@ -46,6 +49,16 @@
         rows="1"
         placeholder="اكتب سؤالك هنا..."
       ></textarea>
+      <button
+        type="button"
+        class="chat-mic"
+        (click)="toggleMic()"
+        [class.listening]="listening"
+        [disabled]="sending"
+        aria-label="الميكروفون"
+      >
+        <i class="fa-solid" [class.fa-microphone]="!listening" [class.fa-microphone-lines]="listening"></i>
+      </button>
       <button (click)="send()" class="btn-primary chat-send" [disabled]="sending || !input.trim()">
         <i class="fa-solid fa-paper-plane" *ngIf="!sending"></i>
         <i class="fa-solid fa-spinner fa-spin" *ngIf="sending"></i>
