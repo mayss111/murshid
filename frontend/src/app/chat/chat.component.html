@@ -26,16 +26,6 @@
             <span class="typing"><span></span><span></span><span></span></span>
           </ng-template>
         </div>
-        <button
-          *ngIf="msg.role === 'assistant' && !msg.pending && msg.content"
-          type="button"
-          class="bubble-read"
-          (click)="speak(msg.content)"
-          [class.speaking]="speaking"
-          aria-label="قراءة الرد"
-        >
-          <i class="fa-solid" [class.fa-volume-high]="!speaking" [class.fa-volume-xmark]="speaking"></i>
-        </button>
       </div>
     </div>
 

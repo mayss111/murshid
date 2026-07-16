@@ -2,7 +2,6 @@ import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked, OnDestroy }
 import { ChatService } from './services/chat.service';
 import { ChatHistoryService } from './services/chat-history.service';
 import { ChatMessage } from './models/chat.model';
-import { SpeechService } from '../shared/services/speech.service';
 
 @Component({
   selector: 'app-chat',
@@ -14,7 +13,6 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   input = '';
   sending = false;
   error = '';
-  speaking = false;
   listening = false;
 
   private recognition: any = null;
@@ -24,11 +22,8 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   constructor(
     private chatService: ChatService,
-    private history: ChatHistoryService,
-    private speech: SpeechService
-  ) {
-    this.speech.state$.subscribe((st) => (this.speaking = st.speaking));
-  }
+    private history: ChatHistoryService
+  ) {}
 
   ngOnInit(): void {
     this.messages = this.history.load();
@@ -79,11 +74,6 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
       event.preventDefault();
       this.send();
     }
-  }
-
-  // --- Lecture (TTS) : toujours en arabe, lit tout le message ---
-  speak(text: string): void {
-    this.speech.speak(text, this.speechLang);
   }
 
   // --- Micro (reconnaissance vocale) ---

@@ -40,8 +40,6 @@ services:
       # A renseigner manuellement dans le dashboard Render (secret) :
       - key: GROQ_API_KEY
         sync: false
-      - key: VOICERSS_API_KEY
-        sync: false
 
   # --- Frontend Angular (site statique) ---
   - type: web

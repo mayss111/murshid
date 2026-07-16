@@ -3,7 +3,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { QuizService } from './services/quiz.service';
 import { Lecon } from '../shared/models/lecon.model';
 import { Question } from '../shared/models/question.model';
-import { SpeechService } from '../shared/services/speech.service';
 
 @Component({
   selector: 'app-quiz',
@@ -21,17 +20,12 @@ export class QuizComponent implements OnInit {
   evaluation = '';
   points = 0;
   loading = true;
-  speaking = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private quizService: QuizService,
-    private speech: SpeechService
+    private quizService: QuizService
   ) {
-    this.speech.state$.subscribe((st) => {
-      this.speaking = st.speaking;
-    });
   }
 
   ngOnInit(): void {
@@ -79,11 +73,4 @@ export class QuizComponent implements OnInit {
     }
   }
 
-  speakCurrentQuestion(): void {
-    const currentQ = this.questions[this.currentQuestionIndex];
-    if (!currentQ) {
-      return;
-    }
-    this.speech.toggle(currentQ.texte);
-  }
 }

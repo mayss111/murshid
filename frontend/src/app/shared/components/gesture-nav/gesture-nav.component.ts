@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { GestureService, GestureStatus } from '../../gesture/gesture.service';
-import { SpeechService } from '../../services/speech.service';
 import {
   CursorPos,
   DEFAULT_GESTURE_ACTIONS,
@@ -40,8 +39,6 @@ export class GestureNavComponent implements OnDestroy {
   clicking = false;
   cursor: CursorPos | null = null;
   history: GestureLog[] = [];
-  reading = false;
-  speechSupported = false;
   settings: GestureSettings = {
     holdFrames: 3,
     cooldownMs: 1200,
@@ -54,17 +51,11 @@ export class GestureNavComponent implements OnDestroy {
   private subs: Subscription[] = [];
   private audioCtx: AudioContext | null = null;
 
-  constructor(private gesture: GestureService, private router: Router, private speech: SpeechService) {
+  constructor(private gesture: GestureService, private router: Router) {
     this.subs.push(
       this.gesture.status$.subscribe((s) => {
         this.status = s;
         this.enabled = s === 'running';
-      })
-    );
-    this.speechSupported = this.speech.supported;
-    this.subs.push(
-      this.speech.state$.subscribe((st) => {
-        this.reading = st.speaking;
       })
     );
     this.subs.push(this.gesture.error$.subscribe((e) => (this.error = e)));
@@ -106,8 +97,6 @@ export class GestureNavComponent implements OnDestroy {
 
     if (action.click) {
       this.dispatchClick();
-    } else if (action.read) {
-      this.toggleReading();
     } else if (action.back) {
       window.history.back();
     } else if (action.forward) {
@@ -178,20 +167,6 @@ export class GestureNavComponent implements OnDestroy {
 
   toggleSound(): void {
     this.gesture.updateSettings({ sound: !this.settings.sound });
-  }
-
-  /** Toggle spoken reading of the current page content with the voice. */
-  toggleReading(): void {
-    if (!this.speechSupported) {
-      this.error = 'قراءة الصوت غير مدعومة في هذا المتصفح.';
-      return;
-    }
-    this.speech.toggle(this.speech.readPageContent());
-  }
-
-  /** Stop reading immediately (button in the panel). */
-  stopReading(): void {
-    this.speech.stop();
   }
 
   gestureLabel(type: GestureType): string {

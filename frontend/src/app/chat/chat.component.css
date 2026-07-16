@@ -89,19 +89,6 @@
   margin: 0;
 }
 
-.bubble-read {
-  background: transparent;
-  border: none;
-  color: #d4af37;
-  cursor: pointer;
-  font-size: 0.95rem;
-  padding: 0.2rem;
-}
-
-.bubble-read.speaking {
-  color: #f1c40f;
-}
-
 .typing {
   display: inline-flex;
   gap: 4px;

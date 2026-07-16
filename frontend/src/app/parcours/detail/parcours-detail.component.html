@@ -50,9 +50,6 @@
           <h2>{{ selectedLesson.titre }}</h2>
         </div>
         <div class="modal-header-actions">
-          <button type="button" class="modal-read" (click)="readSelectedLesson()" [class.reading]="reading" aria-label="قراءة الدرس">
-            <i class="fa-solid" [class.fa-volume-high]="!reading" [class.fa-volume-xmark]="reading"></i>
-          </button>
           <button type="button" class="modal-close" (click)="closeLessonModal()" aria-label="إغلاق">
             <i class="fa-solid fa-xmark"></i>
           </button>
