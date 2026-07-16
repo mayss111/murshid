@@ -8,12 +8,13 @@ export interface SpeechState {
   lang: string;
 }
 
-const DEFAULT_LANG = 'fr-FR';
+const DEFAULT_LANG = 'ar-SA';
 const STORAGE_KEY = 'murshid.speech.lang';
 
 /**
  * Text-to-speech helper wrapping the Web Speech API (SpeechSynthesis).
- * Used to read page content aloud and to toggle reading with a gesture.
+ * Handles the asynchronous voice-loading race in Chrome by waiting for
+ * getVoices() before speaking, and selecting an explicit Arabic voice.
  */
 @Injectable({ providedIn: 'root' })
 export class SpeechService {
@@ -25,12 +26,14 @@ export class SpeechService {
   readonly state$: Observable<SpeechState> = this._state$.asObservable();
 
   private lastText = '';
+  private voices: SpeechSynthesisVoice[] = [];
+  private pending: { text: string; lang: string } | null = null;
+  private voicesReady = false;
 
   constructor(private zone: NgZone) {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.onvoiceschanged = () => {
-        // Voices may load asynchronously; nothing else needed here.
-      };
+      this.loadVoices();
+      window.speechSynthesis.onvoiceschanged = () => this.loadVoices();
       this.syncSpeakingState();
     }
   }
@@ -61,16 +64,16 @@ export class SpeechService {
     if (!this.supported || !text?.trim()) {
       return;
     }
-    window.speechSynthesis.cancel();
     this.lastText = text;
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = lang;
-    utter.rate = 0.95;
-    utter.pitch = 1;
-    utter.onstart = () => this.zone.run(() => this._state$.next({ speaking: true, lang }));
-    utter.onend = () => this.zone.run(() => this.syncSpeakingState());
-    utter.onerror = () => this.zone.run(() => this.syncSpeakingState());
-    window.speechSynthesis.speak(utter);
+    this.pending = null;
+
+    if (!this.voicesReady) {
+      // Voices not loaded yet: cache and try again once they arrive.
+      this.pending = { text, lang };
+      this.loadVoices();
+      return;
+    }
+    this.doSpeak(text, lang);
   }
 
   /** Stop any ongoing speech. */
@@ -78,6 +81,7 @@ export class SpeechService {
     if (!this.supported) {
       return;
     }
+    this.pending = null;
     window.speechSynthesis.cancel();
     this.syncSpeakingState();
   }
@@ -115,6 +119,43 @@ export class SpeechService {
       .querySelectorAll('script, style, noscript, app-gesture-nav, nav, header, footer')
       .forEach((el) => el.remove());
     return (clone.textContent ?? '').replace(/\s+/g, ' ').trim();
+  }
+
+  private loadVoices(): void {
+    if (!this.supported) {
+      return;
+    }
+    this.voices = window.speechSynthesis.getVoices() || [];
+    this.voicesReady = this.voices.length > 0;
+    if (this.voicesReady && this.pending) {
+      const { text, lang } = this.pending;
+      this.pending = null;
+      this.doSpeak(text, lang);
+    }
+  }
+
+  private pickVoice(lang: string): SpeechSynthesisVoice | undefined {
+    if (!this.voices.length) return undefined;
+    const base = lang.split('-')[0].toLowerCase();
+    return (
+      this.voices.find((v) => v.lang?.toLowerCase() === lang.toLowerCase()) ??
+      this.voices.find((v) => v.lang?.toLowerCase().startsWith(base)) ??
+      this.voices.find((v) => v.name?.toLowerCase().includes(base)) ??
+      this.voices.find((v) => v.default)
+    );
+  }
+
+  private doSpeak(text: string, lang: string): void {
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = lang;
+    utter.voice = this.pickVoice(lang);
+    utter.rate = 0.95;
+    utter.pitch = 1;
+    utter.onstart = () => this.zone.run(() => this._state$.next({ speaking: true, lang }));
+    utter.onend = () => this.zone.run(() => this.syncSpeakingState());
+    utter.onerror = () => this.zone.run(() => this.syncSpeakingState());
+    window.speechSynthesis.speak(utter);
   }
 
   private syncSpeakingState(): void {
