@@ -32,12 +32,6 @@ public class GroqService {
     @Value("${groq.model:llama-3.3-70b-versatile}")
     private String model;
 
-    @Value("${ollama.api.url:http://localhost:11434/api/generate}")
-    private String ollamaApiUrl;
-
-    @Value("${ollama.model:llama3.2}")
-    private String ollamaModel;
-
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -313,11 +307,9 @@ public class GroqService {
 
     @SuppressWarnings("unchecked")
     private String appelGroq(String prompt, int maxTokens) {
-        // Priorité : API Groq. En cas d'échec (clé invalide, 401, indisponible),
-        // bascule automatiquement vers Ollama local pour garantir la génération.
         try {
             if (groqApiKey == null || groqApiKey.isBlank()) {
-                throw new IllegalStateException("Clé API Groq manquante (groq.api.key non configurée).");
+                throw new IllegalStateException("Clé API Groq manquante (GROQ_API_KEY non configurée).");
             }
 
             HttpHeaders headers = new HttpHeaders();
@@ -357,37 +349,7 @@ public class GroqService {
             }
             throw new RuntimeException("Réponse Groq invalide ou vide (statut: " + response.getStatusCode() + ").");
         } catch (Exception ex) {
-            logger.warn("Groq indisponible ({}), bascule vers Ollama local.", ex.getMessage());
-            return appelOllama(prompt, maxTokens);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private String appelOllama(String prompt, int maxTokens) {
-        try {
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", ollamaModel);
-            requestBody.put("prompt", prompt);
-            requestBody.put("temperature", 0.8);
-            requestBody.put("num_predict", maxTokens);
-            requestBody.put("stream", false);
-
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody,
-                new HttpHeaders() {{
-                    setContentType(MediaType.APPLICATION_JSON);
-                }});
-
-            ResponseEntity<Map> response = restTemplate.postForEntity(ollamaApiUrl, entity, Map.class);
-
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                Object content = response.getBody().get("response");
-                if (content != null) {
-                    return content.toString();
-                }
-            }
-            throw new RuntimeException("Réponse Ollama invalide (statut: " + response.getStatusCode() + ").");
-        } catch (Exception ex) {
-            throw new RuntimeException("خطأ Ollama local: " + ex.getMessage());
+            throw new RuntimeException("خطأ واجهة Groq: " + ex.getMessage());
         }
     }
 
@@ -445,25 +407,9 @@ public class GroqService {
             }
             throw new RuntimeException("Réponse Groq invalide.");
         } catch (Exception ex) {
-            logger.warn("Groq indisponible ({}), bascule vers Ollama local.", ex.getMessage());
-            try {
-                return appelOllamaAvecHistorique(messages, maxTokens);
-            } catch (Exception ollamaEx) {
-                logger.error("Erreur Ollama (Chat): {}", ollamaEx.getMessage());
-                return "عذراً، لم أتمكّن من الردّ في هذه اللحظة. حاول مرة أخرى بعد قليل.";
-            }
+            logger.error("Erreur Groq (Chat): {}", ex.getMessage());
+            return "عذراً، لم أتمكّن من الردّ في هذه اللحظة. حاول مرة أخرى بعد قليل.";
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private String appelOllamaAvecHistorique(List<Map<String, String>> messages, int maxTokens) {
-        StringBuilder sb = new StringBuilder();
-        for (Map<String, String> m : messages) {
-            String role = m.getOrDefault("role", "user");
-            String content = m.getOrDefault("content", "");
-            sb.append(role).append(": ").append(content).append("\n");
-        }
-        return appelOllama(sb.toString(), maxTokens).trim();
     }
 
     // ====================== FALLBACKS (secours uniquement) ======================
