@@ -31,8 +31,10 @@ services:
         fromDatabase:
           name: murshid-db
           property: connectionString
+      # Secret JWT FIXE (ne pas utiliser generateValue, sinon toutes les sessions
+      # sont invalidees a chaque deploiement et l'utilisateur doit se reconnecter).
       - key: APP_JWTSECRET
-        generateValue: true
+        value: MurshidFixedJwtSecretKey2024SuperSecretProductionGradeKeyDoNotShareOutsideRenderDeployContext1234567890
       - key: GROQ_MODEL
         value: llama-3.3-70b-versatile
       # A renseigner manuellement dans le dashboard Render (secret) :
