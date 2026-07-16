@@ -447,4 +447,13 @@ public class GroqService {
         }
         return lecons;
     }
+
+    private String getFallbackParcoursPlan(String matiere, int niveau) {
+        List<String> variantes = List.of(
+            "خطة دراسية منظّمة في " + matiere + " (المستوى " + niveau + ") : 1. الأسس والمبادئ، 2. التطبيق العملي والقواعد، 3. الإتقان المتقدّم والمراجعة.",
+            "مسار تعلّم تدريجي في " + matiere + " يبدأ من المستوى " + niveau + " : 1. التمهيد والمفاهيم، 2. التدريب والتطبيق، 3. التخصّص والإتقان.",
+            "برنامج تعليمي في " + matiere + " (المستوى " + niveau + ") : 1. المدخلات الأساسية، 2. الممارسة الموجّهة، 3. التقييم والترسيخ."
+        );
+        return variantes.get(ThreadLocalRandom.current().nextInt(variantes.size()));
+    }
 }
