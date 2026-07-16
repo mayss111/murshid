@@ -555,12 +555,12 @@ public class GroqService {
         return lecons;
     }
 
-    private String getFallbackContenuLecon(String matiere, String titreLecon) {
+    public String getFallbackContenuLecon(String matiere, String titreLecon) {
         return "يتناول هذا الدرس التفاعلي بالتفصيل: " + titreLecon + ". ستتعلّم فيه الأسس الضرورية لتطوير معرفتك في " + matiere
             + " من خلال شرح مبسّط، أمثلة عملية، وربط المفاهيم بتطبيقات الحياة اليومية.";
     }
 
-    private List<Map<String, Object>> getFallbackQuestions(String matiere, String titreLecon) {
+    public List<Map<String, Object>> getFallbackQuestions(String matiere, String titreLecon) {
         List<List<Map<String, Object>>> variantes = List.of(
             List.of(
                 Map.of("texte", "ما هي المفاهيم الأساسية لـ '" + titreLecon + "' ؟",
