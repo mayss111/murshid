@@ -98,85 +98,6 @@ public class GroqService {
     }
 
     /**
-     * Génère tout le parcours (leçons + contenu + questions) en UN SEUL appel Groq.
-     * Évite les appels en chaîne qui timeout/rate-limit sur le free-tier.
-     * Renvoie une liste de leçons, chacune avec son contenu et ses questions.
-     * Renvoie null si l'IA échoue (pour utiliser le fallback).
-     */
-    public List<Map<String, Object>> genererParcoursComplet(String matiere, int niveau) {
-        try {
-            String prompt = "أنت معلّم إسلامي متميّز. صمّم مسار تعلّم كاملاً لمادة '" + matiere
-                + "' (المستوى " + niveau + "). "
-                + "أنشئ 3 دروس متسلسلة. لكل درس: عنوان، محتوى درسي مفصّل ومُلهم (بين 200 و400 كلمة، "
-                + "بالأسلوب التربوي: مقدمة، شرح المفاهيم، أمثلة، آيات/أحاديث، تطبيق، خاتمة)، "
-                + "ثم 3 أسئلة متنوّعة (COMPREHENSION، APPLICATION، REFLEXION) مبنية على المحتوى. "
-                + "أجب باللغة العربية الفصحى وبصيغة JSON صالحة فقط (دون أي نص قبلها أو بعدها، ودون ```json) بالهيكل التالي تماماً:\n"
-                + "[\n"
-                + "  {\n"
-                + "    \"titre\": \"عنوان الدرس الأول\",\n"
-                + "    \"contenu\": \"محتوى الدرس الأول المفصّل...\",\n"
-                + "    \"questions\": [\n"
-                + "      {\"texte\": \"السؤال الأول\", \"type\": \"COMPREHENSION\", \"reponseAttendue\": \"الإجابة\", \"reponseDetaillee\": \"الشرح\"},\n"
-                + "      {\"texte\": \"السؤال الثاني\", \"type\": \"APPLICATION\", \"reponseAttendue\": \"...\", \"reponseDetaillee\": \"...\"},\n"
-                + "      {\"texte\": \"السؤال الثالث\", \"type\": \"REFLEXION\", \"reponseAttendue\": \"...\", \"reponseDetaillee\": \"...\"}\n"
-                + "    ]\n"
-                + "  },\n"
-                + "  {\"titre\": \"عنوان الدرس الثاني\", \"contenu\": \"...\", \"questions\": [...]},\n"
-                + "  {\"titre\": \"عنوان الدرس الثالث\", \"contenu\": \"...\", \"questions\": [...]}\n"
-                + "]";
-            String response = appelGroq(prompt, 4000);
-            String cleaned = nettoyerReponsePourJson(response);
-
-            List<Map<String, Object>> lecons = new ArrayList<>();
-            try {
-                JsonNode root = objectMapper.readTree(cleaned);
-                if (root.isObject()) {
-                    root = objectMapper.createArrayNode().add(root);
-                }
-                if (root.isArray()) {
-                    for (JsonNode node : root) {
-                        Map<String, Object> lecon = new HashMap<>();
-                        String titre = node.path("titre").asText("").trim();
-                        if (titre.isEmpty()) {
-                            continue;
-                        }
-                        lecon.put("titre", titre);
-                        lecon.put("contenu", node.path("contenu").asText("").trim());
-                        List<Map<String, Object>> questions = new ArrayList<>();
-                        JsonNode qNodes = node.path("questions");
-                        if (qNodes.isArray()) {
-                            for (JsonNode q : qNodes) {
-                                Map<String, Object> qMap = new HashMap<>();
-                                String texte = q.path("texte").asText("").trim();
-                                if (texte.isEmpty()) {
-                                    continue;
-                                }
-                                qMap.put("texte", texte);
-                                qMap.put("type", q.path("type").asText("COMPREHENSION").trim().toUpperCase());
-                                qMap.put("reponseAttendue", q.path("reponseAttendue").asText("").trim());
-                                qMap.put("reponseDetaillee", q.path("reponseDetaillee").asText("").trim());
-                                questions.add(qMap);
-                            }
-                        }
-                        lecon.put("questions", questions);
-                        lecons.add(lecon);
-                    }
-                }
-            } catch (Exception parseEx) {
-                logger.error("Erreur parsing parcours complet JSON: {}", parseEx.getMessage());
-                logger.error("الرد الخام: {}", cleaned);
-            }
-            if (!lecons.isEmpty()) {
-                return lecons;
-            }
-            return null;
-        } catch (Exception ex) {
-            logger.error("Erreur Groq (Parcours complet): {}", ex.getMessage());
-            return null;
-        }
-    }
-
-    /**
      * Génère dynamiquement le plan de leçons (titres + objectifs) pour une matière,
      * via l'IA. En cas d'échec, renvoie un plan de secours variable.
      */
@@ -493,20 +414,6 @@ public class GroqService {
 
     // ====================== FALLBACKS (secours uniquement) ======================
 
-    public List<Map<String, Object>> getFallbackPlanComplet(String matiere, int niveau) {
-        List<Map<String, String>> planLecons = getFallbackPlanLecons(matiere, niveau);
-        List<Map<String, Object>> result = new ArrayList<>();
-        for (Map<String, String> l : planLecons) {
-            Map<String, Object> lecon = new HashMap<>();
-            String titre = l.getOrDefault("titre", "درس في " + matiere);
-            lecon.put("titre", titre);
-            lecon.put("contenu", getFallbackContenuLecon(matiere, titre));
-            lecon.put("questions", getFallbackQuestions(matiere, titre));
-            result.add(lecon);
-        }
-        return result;
-    }
-
     private String getFallbackParcoursPlan(String matiere, int niveau) {
         List<String> variantes = List.of(
             "خطة دراسية منظّمة في " + matiere + " (المستوى " + niveau + ") : 1. الأسس والمبادئ، 2. التطبيق العملي والقواعد، 3. الإتقان المتقدّم والمراجعة.",
@@ -555,12 +462,12 @@ public class GroqService {
         return lecons;
     }
 
-    public String getFallbackContenuLecon(String matiere, String titreLecon) {
+    private String getFallbackContenuLecon(String matiere, String titreLecon) {
         return "يتناول هذا الدرس التفاعلي بالتفصيل: " + titreLecon + ". ستتعلّم فيه الأسس الضرورية لتطوير معرفتك في " + matiere
             + " من خلال شرح مبسّط، أمثلة عملية، وربط المفاهيم بتطبيقات الحياة اليومية.";
     }
 
-    public List<Map<String, Object>> getFallbackQuestions(String matiere, String titreLecon) {
+    private List<Map<String, Object>> getFallbackQuestions(String matiere, String titreLecon) {
         List<List<Map<String, Object>>> variantes = List.of(
             List.of(
                 Map.of("texte", "ما هي المفاهيم الأساسية لـ '" + titreLecon + "' ؟",
