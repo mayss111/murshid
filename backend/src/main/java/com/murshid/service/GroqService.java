@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Service d'intelligence artificielle basé sur l'API Groq (compatible OpenAI).
@@ -87,6 +88,67 @@ public class GroqService {
     }
 
     // ====================== GÉNÉRATION PARCOURS / COURS / QUIZ ======================
+
+    public String genererParcours(String matiere, int niveauActuel) {
+        try {
+            String prompt = "أنت معلّم إسلامي متميّز. صمّم خطة تعلّم منظّمة ومُلهمة لمادة '" + matiere
+                + "' من المستوى " + niveauActuel + " إلى المستوى " + (niveauActuel + 4) + ". "
+                + "حدّد 3 دروس رئيسية متسلسلة، لكل درس عنوان جذّاب وأهداف واضحة. "
+                + "أجب باللغة العربية الفصحى وبصيغة JSON صالحة فقط (دون أي نص قبلها أو بعدها، ودون ```json) بالهيكل التالي تماماً:\n"
+                + "{\n"
+                + "  \"titre\": \"عنوان المسار\",\n"
+                + "  \"description\": \"وصف موجز ومُلهم للمسار\",\n"
+                + "  \"lecons\": [\n"
+                + "    {\"titre\": \"عنوان الدرس الأول\", \"objectifs\": \"أهداف الدرس الأول\"},\n"
+                + "    {\"titre\": \"عنوان الدرس الثاني\", \"objectifs\": \"أهداف الدرس الثاني\"},\n"
+                + "    {\"titre\": \"عنوان الدرس الثالث\", \"objectifs\": \"أهداف الدرس الثالث\"}\n"
+                + "  ]\n"
+                + "}";
+            String response = appelGroq(prompt, 1500);
+            String cleaned = nettoyerReponsePourJson(response);
+
+            try {
+                JsonNode root = objectMapper.readTree(cleaned);
+                String titre = root.path("titre").asText("").trim();
+                String description = root.path("description").asText("").trim();
+                if (titre.isEmpty()) {
+                    titre = "مسار " + matiere + " - المستوى " + niveauActuel;
+                }
+                if (description.isEmpty()) {
+                    description = "مسار تعلّم مخصّص ومولّد بالذكاء الاصطناعي في " + matiere + ".";
+                }
+                StringBuilder sb = new StringBuilder();
+                sb.append(description).append("\n\nالدروس المخطّط لها:\n");
+                JsonNode lecons = root.path("lecons");
+                if (lecons.isArray()) {
+                    int i = 1;
+                    for (JsonNode lecon : lecons) {
+                        String t = lecon.path("titre").asText("").trim();
+                        String o = lecon.path("objectifs").asText("").trim();
+                        if (!t.isEmpty()) {
+                            sb.append(i).append(". ").append(t);
+                            if (!o.isEmpty()) {
+                                sb.append(" — ").append(o);
+                            }
+                            sb.append("\n");
+                            i++;
+                        }
+                    }
+                }
+                return sb.toString().trim();
+            } catch (Exception parseEx) {
+                logger.error("Erreur parsing parcours JSON: {}", parseEx.getMessage());
+                logger.error("الرد الخام: {}", cleaned);
+                if (!cleaned.isBlank()) {
+                    return cleaned;
+                }
+                return getFallbackParcoursPlan(matiere, niveauActuel);
+            }
+        } catch (Exception ex) {
+            logger.error("Erreur Groq (Parcours): {}", ex.getMessage());
+            return getFallbackParcoursPlan(matiere, niveauActuel);
+        }
+    }
 
     /**
      * Génère tout le parcours (leçons + contenu + questions) en UN SEUL appel Groq.
