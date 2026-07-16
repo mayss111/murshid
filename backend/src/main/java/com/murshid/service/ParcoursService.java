@@ -75,26 +75,30 @@ public class ParcoursService {
     }
 
     private void createCurriculumStructure(Parcours parcours, String matiere, Integer niveau) {
-        // Generate dynamic, varied lesson titles via AI (fallback statique enrichi en dernier recours)
-        List<Map<String, String>> planLecons = groqService.genererPlanLecons(matiere, niveau);
-        if (planLecons.isEmpty()) {
-            planLecons = groqService.getFallbackPlanLecons(matiere, niveau);
+        // Génération en UN SEUL appel Groq (leçons + contenu + questions).
+        // Fallback statique enrichi si l'IA est indisponible.
+        List<Map<String, Object>> planComplet = null;
+        try {
+            planComplet = groqService.genererParcoursComplet(matiere, niveau);
+        } catch (Exception ex) {
+            logger.error("Erreur génération parcours complet: {}", ex.getMessage());
+        }
+
+        if (planComplet == null || planComplet.isEmpty()) {
+            planComplet = groqService.getFallbackPlanComplet(matiere, niveau);
         }
 
         int ordre = 1;
-        for (Map<String, String> leconPlan : planLecons) {
+        for (Map<String, Object> leconPlan : planComplet) {
             try {
-                String titreLecon = leconPlan.getOrDefault("titre", "درس في " + matiere).trim();
-                if (titreLecon.isEmpty()) {
+                String titreLecon = (String) leconPlan.getOrDefault("titre", "درس في " + matiere);
+                if (titreLecon == null || titreLecon.isBlank()) {
                     titreLecon = "درس في " + matiere;
                 }
+                titreLecon = titreLecon.trim();
 
-                // Generate lesson content with Groq (fallback local si echec)
-                String contenuLecon;
-                try {
-                    contenuLecon = groqService.genererContenuLecon(matiere, niveau, titreLecon);
-                } catch (Exception contEx) {
-                    logger.error("Erreur generation contenu lecon '{}': {}", titreLecon, contEx.getMessage());
+                String contenuLecon = (String) leconPlan.getOrDefault("contenu", "");
+                if (contenuLecon == null || contenuLecon.isBlank()) {
                     contenuLecon = groqService.getFallbackContenuLecon(matiere, titreLecon);
                 }
 
@@ -110,14 +114,13 @@ public class ParcoursService {
 
                 lecon = leconRepository.save(lecon);
 
-                // Generate questions with Groq (5 questions per lesson) using the actual lesson content
-                List<Map<String, Object>> questionsData;
-                try {
-                    questionsData = groqService.genererQuestionsLecon(matiere, niveau, titreLecon, contenuLecon, 5);
-                } catch (Exception qEx) {
-                    logger.error("Erreur generation questions lecon '{}': {}", titreLecon, qEx.getMessage());
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> questionsData =
+                        (List<Map<String, Object>>) leconPlan.getOrDefault("questions", new ArrayList<>());
+                if (questionsData.isEmpty()) {
                     questionsData = groqService.getFallbackQuestions(matiere, titreLecon);
                 }
+
                 Set<Question> questions = new HashSet<>();
                 for (Map<String, Object> qData : questionsData) {
                     Question.QuestionType type;
@@ -128,7 +131,6 @@ public class ParcoursService {
                         type = Question.QuestionType.COMPREHENSION;
                     }
 
-                    // Valider les champs de la question
                     String texte = (String) qData.getOrDefault("texte", "ما هي المفاهيم الأساسية لهذا الدرس؟");
                     if (texte == null || texte.isBlank()) {
                         texte = "ما هي المفاهيم الأساسية لهذا الدرس؟";
@@ -160,8 +162,7 @@ public class ParcoursService {
                 questionRepository.saveAll(questions);
                 ordre++;
             } catch (Exception leconEx) {
-                // Une lecon en echec ne doit pas annuler tout le parcours
-                logger.error("Erreur creation lecon pour parcours {}: {}", parcours.getId(), leconEx.getMessage());
+                logger.error("Erreur création leçon pour parcours {}: {}", parcours.getId(), leconEx.getMessage());
             }
         }
     }
