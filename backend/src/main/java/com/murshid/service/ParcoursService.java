@@ -75,52 +75,36 @@ public class ParcoursService {
     }
 
     private void createCurriculumStructure(Parcours parcours, String matiere, Integer niveau) {
-        String[] lessonTitles = switch (matiere.toLowerCase()) {
-            case "tajweed" -> new String[]{
-                "مقدمة في قواعد المخارج (مخارج الحروف)",
-                "أحكام النون الساكنة والتنوين (الإظهار، الإدغام، الإقلاب، الإخفاء)",
-                "أحكام المد والوقف"
-            };
-            case "fiqh" -> new String[]{
-                "مقدمة في الطهارة والوضوء",
-                "أركان الصلاة وشروطها",
-                "أحكام الصيام والزكاة"
-            };
-            case "hadith" -> new String[]{
-                "مقدمة في الأربعين النووية (النية والإخلاص)",
-                "منهجية تصنيف الحديث (صحيح، حسن، ضعيف)",
-                "دراسة تطبيقية لأحاديث الأخلاق والسلوك"
-            };
-            case "tafsir" -> new String[]{
-                "مقدمة في علم التفسير وأسباب النزول",
-                "تفسير وتدبّر سورة الفاتحة",
-                "تفسير السورتين المتوحّيتين (المعوذتين) والإخلاص"
-            };
-            default -> new String[]{
-                "مقدمة في المبادئ الأساسية",
-                "التعمّق العملي في القواعد",
-                "حصيلة شاملة وتلخيص"
-            };
-        };
+        // Generate dynamic, varied lesson titles via AI (fallback statique enrichi en dernier recours)
+        List<Map<String, String>> planLecons = groqService.genererPlanLecons(matiere, niveau);
+        if (planLecons.isEmpty()) {
+            planLecons = groqService.genererPlanLecons(matiere, niveau);
+        }
 
-        for (int i = 0; i < lessonTitles.length; i++) {
+        int ordre = 1;
+        for (Map<String, String> leconPlan : planLecons) {
+            String titreLecon = leconPlan.getOrDefault("titre", "درس في " + matiere).trim();
+            if (titreLecon.isEmpty()) {
+                titreLecon = "درس في " + matiere;
+            }
+
             // Generate lesson content with Groq
-            String contenuLecon = groqService.genererContenuLecon(matiere, niveau, lessonTitles[i]);
-            
+            String contenuLecon = groqService.genererContenuLecon(matiere, niveau, titreLecon);
+
             Lecon lecon = Lecon.builder()
                     .parcoursId(parcours.getId())
-                    .titre(lessonTitles[i])
+                    .titre(titreLecon)
                     .contenu(contenuLecon)
                     .niveau(niveau)
                     .matiere(matiere)
-                    .ordreSequence(i + 1)
+                    .ordreSequence(ordre)
                     .dateCreation(LocalDateTime.now())
                     .build();
 
             lecon = leconRepository.save(lecon);
 
             // Generate questions with Groq (5 questions per lesson) using the actual lesson content
-            List<Map<String, Object>> questionsData = groqService.genererQuestionsLecon(matiere, niveau, lessonTitles[i], contenuLecon, 5);
+            List<Map<String, Object>> questionsData = groqService.genererQuestionsLecon(matiere, niveau, titreLecon, contenuLecon, 5);
             Set<Question> questions = new HashSet<>();
             for (Map<String, Object> qData : questionsData) {
                 Question.QuestionType type;
@@ -161,6 +145,7 @@ public class ParcoursService {
             }
 
             questionRepository.saveAll(questions);
+            ordre++;
         }
     }
 

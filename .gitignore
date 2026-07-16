@@ -11,3 +11,14 @@ dist/
 
 # Logs
 *.log
+
+# Secrets (contains live API keys)
+.env
+
+# Java build artifacts
+target/
+backend/target/
+
+# Local Maven distribution
+.mvn/
+backend/.mvn/
