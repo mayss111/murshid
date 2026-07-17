@@ -15,6 +15,8 @@ export class QuizComponent implements OnInit {
   questions: Question[] = [];
   currentQuestionIndex = 0;
   userAnswer = '';
+  selectedChoice: string | null = null;
+  selectedTrueFalse: boolean | null = null;
   submitted = false;
   submitting = false;
   evaluation = '';
@@ -46,12 +48,50 @@ export class QuizComponent implements OnInit {
     });
   }
 
+  get currentQ(): Question {
+    return this.questions[this.currentQuestionIndex];
+  }
+
+  get questionTypeLabel(): string {
+    const type = this.currentQ?.type;
+    switch (type) {
+      case 'QCM': return 'اختبار متعدّد الخيارات';
+      case 'TRUE_FALSE': return 'صح أم خطأ';
+      case 'APPLICATION': return 'سؤال تطبيقي';
+      case 'ANALYSIS': return 'سؤال تحليلي';
+      case 'REFLEXION': return 'سؤال تأمّلي';
+      default: return 'سؤال فهم';
+    }
+  }
+
+  get questionTypeClass(): string {
+    return 'qtype-' + (this.currentQ?.type || 'COMPREHENSION').toLowerCase();
+  }
+
+  getChoices(): string[] {
+    const raw = this.currentQ?.choix;
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw.filter(c => typeof c === 'string' && c.trim());
+    return String(raw).split('|||').filter(c => c.trim());
+  }
+
+  selectChoice(choix: string): void {
+    if (this.submitted) return;
+    this.selectedChoice = choix;
+    this.userAnswer = choix;
+  }
+
+  selectTrueFalse(value: boolean): void {
+    if (this.submitted) return;
+    this.selectedTrueFalse = value;
+    this.userAnswer = value ? 'صح' : 'خطأ';
+  }
+
   submitAnswer(): void {
     if (!this.userAnswer.trim()) return;
-    const currentQ = this.questions[this.currentQuestionIndex];
     this.submitting = true;
 
-    this.quizService.soumettre(currentQ.id, this.userAnswer).subscribe({
+    this.quizService.soumettre(this.currentQ.id, this.userAnswer).subscribe({
       next: (response) => {
         this.evaluation = response.evaluation;
         this.points = response.points;
@@ -66,6 +106,8 @@ export class QuizComponent implements OnInit {
     if (this.currentQuestionIndex < this.questions.length - 1) {
       this.currentQuestionIndex++;
       this.userAnswer = '';
+      this.selectedChoice = null;
+      this.selectedTrueFalse = null;
       this.submitted = false;
       this.evaluation = '';
     } else {
@@ -73,4 +115,13 @@ export class QuizComponent implements OnInit {
     }
   }
 
+  isChoiceSelected(choix: string): boolean {
+    return this.selectedChoice === choix;
+  }
+
+  getEvaluationColor(): string {
+    if (this.points >= 8) return 'var(--emerald-glow)';
+    if (this.points >= 5) return 'var(--primary-gold)';
+    return '#ff8a8a';
+  }
 }

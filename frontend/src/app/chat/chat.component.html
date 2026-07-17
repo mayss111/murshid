@@ -26,6 +26,7 @@
             <span class="typing"><span></span><span></span><span></span></span>
           </ng-template>
         </div>
+        <span class="chat-time" *ngIf="!msg.pending">{{ msg.timestamp }}</span>
       </div>
     </div>
 

@@ -6,15 +6,30 @@
   margin-bottom: 2rem;
   background: linear-gradient(135deg, rgba(14, 34, 27, 0.9) 0%, rgba(21, 50, 40, 0.9) 100%);
   border: 1px solid var(--border-glass);
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome-banner::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .welcome-text h2 {
   font-size: 1.75rem;
   margin-bottom: 0.5rem;
+  position: relative;
 }
 
 .welcome-text p {
   color: var(--text-muted);
+  position: relative;
 }
 
 .stats-grid {
@@ -25,6 +40,12 @@
   display: flex;
   align-items: center;
   gap: 1.25rem;
+  transition: var(--transition);
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .stat-icon {
@@ -35,6 +56,11 @@
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
+  transition: var(--transition);
+}
+
+.stat-card:hover .stat-icon {
+  transform: scale(1.08);
 }
 
 .gold-glow {
@@ -83,6 +109,13 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  transition: var(--transition);
+}
+
+.parcours-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(212, 175, 55, 0.3);
+  box-shadow: var(--shadow-gold-glow);
 }
 
 .card-top {
@@ -129,10 +162,40 @@
   color: var(--text-muted);
 }
 
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-full);
+  background: rgba(212, 175, 55, 0.1);
+  display: grid;
+  place-items: center;
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state h3 {
+  color: var(--text-main);
+  font-size: 1.25rem;
+}
+
+.empty-state p {
+  max-width: 420px;
+  line-height: 1.6;
+}
+
 @media (max-width: 768px) {
   .welcome-banner {
     padding: 1.5rem;
     text-align: center;
+    flex-direction: column;
+    gap: 1rem;
   }
 
   .welcome-text h2 {

@@ -42,8 +42,11 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     const text = this.input.trim();
     if (!text || this.sending) return;
 
-    const userMsg: ChatMessage = { role: 'user', content: text };
-    const assistantMsg: ChatMessage = { role: 'assistant', content: '', pending: true };
+    const now = new Date();
+    const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+    const userMsg: ChatMessage = { role: 'user', content: text, timestamp: timeStr };
+    const assistantMsg: ChatMessage = { role: 'assistant', content: '', pending: true, timestamp: timeStr };
     this.messages.push(userMsg, assistantMsg);
     this.input = '';
     this.error = '';
@@ -55,14 +58,18 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
 
     this.chatService.sendMessage({ message: text, history }).subscribe({
       next: (res) => {
+        const nowResp = new Date();
         assistantMsg.content = res.reply;
         assistantMsg.pending = false;
+        assistantMsg.timestamp = nowResp.getHours().toString().padStart(2, '0') + ':' + nowResp.getMinutes().toString().padStart(2, '0');
         this.sending = false;
         this.persist();
       },
       error: () => {
+        const nowErr = new Date();
         assistantMsg.content = 'عذراً، حدث خطأ أثناء الاتصال. حاول مرة أخرى.';
         assistantMsg.pending = false;
+        assistantMsg.timestamp = nowErr.getHours().toString().padStart(2, '0') + ':' + nowErr.getMinutes().toString().padStart(2, '0');
         this.sending = false;
         this.error = 'تعذّر إرسال الرسالة.';
       }

@@ -2,6 +2,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
   pending?: boolean;
+  timestamp?: string;
 }
 
 export interface ChatRequest {

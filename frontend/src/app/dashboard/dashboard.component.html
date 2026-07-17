@@ -53,7 +53,9 @@
     </div>
 
     <div *ngIf="!loading && parcours.length === 0" class="empty-state glass-card">
-      <i class="fa-solid fa-compass gold-icon"></i>
+      <div class="empty-icon">
+        <i class="fa-solid fa-compass gold-icon"></i>
+      </div>
       <h3>لا توجد مسارات نشطة حالياً</h3>
       <p>ابدأ بتوليد أول مسار مخصّص لك مع الذكاء الاصطناعي الخاص بنا.</p>
       <a routerLink="/parcours/new" class="btn-primary" style="margin-top: 1rem;">توليد مساري الأول</a>

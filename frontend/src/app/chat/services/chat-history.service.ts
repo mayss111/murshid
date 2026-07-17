@@ -26,7 +26,7 @@ export class ChatHistoryService {
     try {
       const toStore = messages
         .filter((m) => !m.pending)
-        .map((m) => ({ role: m.role, content: m.content }));
+        .map((m) => ({ role: m.role, content: m.content, timestamp: m.timestamp }));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
     } catch {
       /* storage unavailable */

@@ -11,43 +11,93 @@
     </div>
 
     <div class="question-box">
-      <div class="question-title">
-        <h3 class="question-text">{{ questions[currentQuestionIndex].texte }}</h3>
+      <div class="question-meta-row">
+        <span class="question-type-badge" [class]="questionTypeClass">{{ questionTypeLabel }}</span>
       </div>
 
-      <div class="answer-section" *ngIf="!submitted">
+      <div class="question-title">
+        <h3 class="question-text">{{ currentQ.texte }}</h3>
+      </div>
+
+      <!-- QCM Choices -->
+      <div class="answer-section" *ngIf="!submitted && currentQ.type === 'QCM' && getChoices().length > 0">
+        <label>اختر الإجابة الصحيحة:</label>
+        <div class="choices-grid">
+          <button
+            type="button"
+            *ngFor="let choix of getChoices()"
+            class="choice-card"
+            [class.selected]="isChoiceSelected(choix)"
+            (click)="selectChoice(choix)"
+          >
+            <span class="choice-letter">{{ getChoices().indexOf(choix) + 1 | number:'2.0-0' }}</span>
+            <span class="choice-text">{{ choix }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- TRUE / FALSE -->
+      <div class="answer-section" *ngIf="!submitted && currentQ.type === 'TRUE_FALSE'">
+        <label>حدّد صحة العبارة:</label>
+        <div class="true-false-buttons">
+          <button
+            type="button"
+            class="tf-btn true-btn"
+            [class.selected]="selectedTrueFalse === true"
+            (click)="selectTrueFalse(true)"
+          >
+            <i class="fa-solid fa-check"></i> صح
+          </button>
+          <button
+            type="button"
+            class="tf-btn false-btn"
+            [class.selected]="selectedTrueFalse === false"
+            (click)="selectTrueFalse(false)"
+          >
+            <i class="fa-solid fa-xmark"></i> خطأ
+          </button>
+        </div>
+      </div>
+
+      <!-- Text Answer -->
+      <div class="answer-section" *ngIf="!submitted && currentQ.type !== 'QCM' && currentQ.type !== 'TRUE_FALSE'">
         <label>أدخل إجابتك المكتوبة:</label>
-        <textarea 
-          [(ngModel)]="userAnswer" 
-          class="form-textarea" 
-          rows="4" 
+        <textarea
+          [(ngModel)]="userAnswer"
+          class="form-textarea"
+          rows="4"
           placeholder="اكتب إجابتك هنا بدقّة..."
         ></textarea>
-        
-        <button (click)="submitAnswer()" class="btn-primary" [disabled]="submitting || !userAnswer.trim()">
-          <i class="fa-solid fa-paper-plane" *ngIf="!submitting"></i>
-          <span>{{ submitting ? 'جارٍ التقييم بالذكاء الاصطناعي...' : 'إرسال إجابتي' }}</span>
-        </button>
       </div>
-    </div>
 
-    <!-- Evaluation Feedback Box -->
-    <div *ngIf="submitted" class="evaluation-box glass-card animate-fade-in">
-      <div class="eval-header">
-        <div class="points-badge">
-          <i class="fa-solid fa-trophy gold-text"></i> +{{ points }} نقاط مكتسبة !
+      <button
+        (click)="submitAnswer()"
+        class="btn-primary submit-btn"
+        [disabled]="submitting || !userAnswer.trim()"
+        *ngIf="!submitted"
+      >
+        <i class="fa-solid fa-paper-plane" *ngIf="!submitting"></i>
+        <span>{{ submitting ? 'جارٍ التقييم بالذكاء الاصطناعي...' : 'إرسال إجابتي' }}</span>
+      </button>
+
+      <!-- Evaluation Feedback Box -->
+      <div *ngIf="submitted" class="evaluation-box glass-card animate-fade-in" [style.border-color]="getEvaluationColor()">
+        <div class="eval-header">
+          <div class="points-badge" [style.background]="'rgba(212, 175, 55, 0.2)'">
+            <i class="fa-solid fa-trophy gold-text"></i> +{{ points }} نقاط
+          </div>
+          <h4>تقييم فوري بالذكاء الاصطناعي</h4>
         </div>
-        <h4>تقييم فوري بالذكاء الاصطناعي</h4>
-      </div>
-      <p class="eval-body">{{ evaluation }}</p>
+        <p class="eval-body">{{ evaluation }}</p>
 
-      <div class="eval-actions">
-        <button *ngIf="currentQuestionIndex < questions.length - 1" (click)="nextQuestion()" class="btn-primary">
-          السؤال التالي <i class="fa-solid fa-arrow-left"></i>
-        </button>
-        <button *ngIf="currentQuestionIndex === questions.length - 1" (click)="nextQuestion()" class="btn-primary">
-          إنهاء الاختبار والعودة إلى لوحة التحكم <i class="fa-solid fa-check-double"></i>
-        </button>
+        <div class="eval-actions">
+          <button *ngIf="currentQuestionIndex < questions.length - 1" (click)="nextQuestion()" class="btn-primary">
+            السؤال التالي <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <button *ngIf="currentQuestionIndex === questions.length - 1" (click)="nextQuestion()" class="btn-primary">
+            إنهاء الاختبار والعودة إلى لوحة التحكم <i class="fa-solid fa-check-double"></i>
+          </button>
+        </div>
       </div>
     </div>
   </div>

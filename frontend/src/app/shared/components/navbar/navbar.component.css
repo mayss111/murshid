@@ -8,6 +8,7 @@
   border-top: none;
   border-left: none;
   border-right: none;
+  transition: var(--transition);
 }
 
 .nav-container {
@@ -25,6 +26,11 @@
   font-size: 1.5rem;
   font-weight: 800;
   text-decoration: none;
+  transition: var(--transition);
+}
+
+.brand:hover {
+  opacity: 0.9;
 }
 
 .brand-ar {
@@ -35,7 +41,7 @@
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 0.5rem;
 }
 
 .nav-links a {
@@ -47,18 +53,31 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.4rem 0.8rem;
+  padding: 0.5rem 1rem;
   border-radius: var(--radius-sm);
+  position: relative;
 }
 
-.nav-links a:hover,
+.nav-links a:hover {
+  color: #FFF;
+  background: rgba(16, 185, 129, 0.12);
+}
+
 .nav-links a.active {
   color: #FFF;
   background: rgba(16, 185, 129, 0.15);
 }
 
-.nav-links a.active {
-  border-bottom: 2px solid var(--primary-gold);
+.nav-links a.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 1rem;
+  right: 1rem;
+  height: 2px;
+  background: var(--primary-gold);
+  border-radius: 2px;
+  animation: slideIn 0.3s ease-out;
 }
 
 .nav-actions {
@@ -108,6 +127,11 @@
   transform: rotate(-45deg) translate(5px, -5px);
 }
 
+@keyframes slideIn {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
 @media (max-width: 768px) {
   .navbar {
     padding: 0.75rem 1rem;
@@ -143,6 +167,10 @@
     padding: 0.75rem 1rem;
     border-radius: var(--radius-sm);
     justify-content: flex-start;
+  }
+
+  .nav-links a.active::after {
+    display: none;
   }
 
   .nav-actions {

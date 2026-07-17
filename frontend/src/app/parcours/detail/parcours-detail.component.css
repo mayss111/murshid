@@ -18,7 +18,7 @@
 .description-full {
   color: var(--text-muted);
   font-size: 1.05rem;
-  line-height: 1.6;
+  line-height: 1.7;
   margin: 1rem 0 2rem 0;
 }
 
@@ -52,21 +52,36 @@
   align-items: flex-start;
   gap: 1.5rem;
   padding: 1.75rem;
+  border-left: 3px solid transparent;
+  transition: var(--transition);
+}
+
+.lesson-card:hover {
+  border-left-color: var(--primary-gold);
+  transform: translateX(4px);
 }
 
 .lesson-number {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: var(--radius-full);
-  background: rgba(212, 175, 55, 0.15);
+  background: rgba(212, 175, 55, 0.12);
   color: var(--primary-gold);
-  border: 1px solid var(--primary-gold);
+  border: 1px solid rgba(212, 175, 55, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   flex-shrink: 0;
+  transition: var(--transition);
+}
+
+.lesson-card:hover .lesson-number {
+  background: var(--primary-gold);
+  color: #06120E;
+  border-color: var(--primary-gold);
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
 }
 
 .lesson-body {
@@ -76,13 +91,13 @@
 .lesson-body h3 {
   font-size: 1.2rem;
   margin-bottom: 0.5rem;
+  color: var(--text-main);
 }
 
 .lesson-body p {
   color: var(--text-muted);
   font-size: 0.95rem;
   line-height: 1.5;
-
 }
 
 .lesson-summary {
@@ -120,6 +135,7 @@
   background: rgba(3, 10, 8, 0.72);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  animation: fadeIn 0.25s ease-out;
 }
 
 .lesson-modal {
@@ -129,6 +145,7 @@
   flex-direction: column;
   overflow: hidden;
   border-color: rgba(212, 175, 55, 0.34);
+  animation: slideUp 0.35s ease-out;
 }
 
 .modal-header {
@@ -167,32 +184,6 @@
   align-items: center;
   gap: 0.75rem;
   flex-shrink: 0;
-}
-
-.modal-read {
-  width: 40px;
-  height: 40px;
-  flex: 0 0 40px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-light);
-  background: rgba(212, 175, 55, 0.08);
-  color: var(--primary-gold);
-  cursor: pointer;
-  transition: var(--transition);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-read:hover {
-  background: rgba(212, 175, 55, 0.2);
-  border-color: var(--primary-gold);
-}
-
-.modal-read.reading {
-  background: rgba(212, 175, 55, 0.25);
-  border-color: var(--primary-gold);
-  color: #FFF;
 }
 
 .modal-content {
