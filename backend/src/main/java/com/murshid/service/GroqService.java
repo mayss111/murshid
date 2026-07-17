@@ -29,6 +29,9 @@ public class GroqService {
     @Value("${groq.api.key:}")
     private String groqApiKey;
 
+    @Value("${groq.api.key.generation:}")
+    private String groqApiKeyGeneration;
+
     @Value("${groq.model:llama-3.3-70b-versatile}")
     private String model;
 
@@ -50,7 +53,7 @@ public class GroqService {
                 + "    {\"titre\": \"عنوان الدرس الثالث\", \"objectifs\": \"أهداف الدرس الثالث\"}\n"
                 + "  ]\n"
                 + "}";
-            String response = appelGroq(prompt, 1500);
+            String response = appelGroqGeneration(prompt, 1500);
             String cleaned = nettoyerReponsePourJson(response);
 
             try {
@@ -111,7 +114,7 @@ public class GroqService {
                 + "  {\"titre\": \"عنوان الدرس الثاني\", \"objectif\": \"هدف الدرس الثاني\"},\n"
                 + "  {\"titre\": \"عنوان الدرس الثالث\", \"objectif\": \"هدف الدرس الثالث\"}\n"
                 + "]";
-            String response = appelGroq(prompt, 1000);
+            String response = appelGroqGeneration(prompt, 1000);
             String cleaned = nettoyerReponsePourJson(response);
 
             List<Map<String, String>> lecons = new ArrayList<>();
@@ -158,7 +161,7 @@ public class GroqService {
                 + "6. خاتمة وتلخيص لأهم النقاط\n\n"
                 + "يجب أن يكون الأسلوب دافئاً وتشجيعياً وسهلاً. استخدم لغة بسيطة ودقيقة. "
                 + "أجب باللغة العربية الفصحى وبالمحتوى الدرسي فقط، دون مقدمة أو خاتمة إضافية.";
-            String response = appelGroq(prompt, 3000);
+            String response = appelGroqGeneration(prompt, 3000);
             if (response != null && !response.trim().isEmpty()) {
                 return response.trim();
             }
@@ -182,7 +185,7 @@ public class GroqService {
                 + "  {\"texte\": \"نص السؤال بالعربية الفصحى\", \"type\": \"COMPREHENSION\", \"reponseAttendue\": \"الإجابة المتوقّعة الكاملة\", \"reponseDetaillee\": \"شرح تربوي مفصّل\"},\n"
                 + "  {\"texte\": \"سؤال آخر مختلف\", \"type\": \"APPLICATION\", \"reponseAttendue\": \"...\", \"reponseDetaillee\": \"...\"}\n"
                 + "]";
-            String response = appelGroq(prompt, 2500);
+            String response = appelGroqGeneration(prompt, 2500);
             String cleanedResponse = nettoyerReponsePourJson(response);
 
             try {
@@ -233,7 +236,7 @@ public class GroqService {
                 + "\nإجابة الطالب: " + reponseEtudiant
                 + "\nقيّم الإجابة: 1) قدّم تغذية راجعة تربوية مشجّعة ودقيقة في جملتين إلى ثلاث. 2) أعطِ درجة من 0 إلى 10. 3) حدّد ما إذا كانت الإجابة صحيحة. "
                 + "أجب باللغة العربية وبصيغة JSON صالحة فقط (دون نص قبلها أو بعدها) بالهيكل التالي تماماً: {\"evaluation\": \"نص\", \"points\": 8, \"estCorrect\": true}.";
-            String response = appelGroq(prompt, 1000);
+            String response = appelGroqGeneration(prompt, 1000);
             String cleanedResponse = nettoyerReponsePourJson(response);
 
             try {
@@ -306,55 +309,80 @@ public class GroqService {
     }
 
     @SuppressWarnings("unchecked")
-    private String appelGroq(String prompt, int maxTokens) {
-        try {
-            if (groqApiKey == null || groqApiKey.isBlank()) {
-                throw new IllegalStateException("Clé API Groq manquante (GROQ_API_KEY non configurée).");
-            }
+    private String appelGroq(String prompt, int maxTokens, String apiKey) {
+        String keyToUse = (apiKey != null && !apiKey.isBlank()) ? apiKey : groqApiKey;
+        if (keyToUse == null || keyToUse.isBlank()) {
+            throw new IllegalStateException("Clé API Groq manquante.");
+        }
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(groqApiKey);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(keyToUse);
 
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", model);
-            requestBody.put("temperature", 0.8);
-            requestBody.put("max_tokens", maxTokens);
-            requestBody.put("messages", List.of(
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", model);
+        requestBody.put("temperature", 0.8);
+        requestBody.put("max_tokens", maxTokens);
+        requestBody.put("messages", List.of(
                 Map.of("role", "user", "content", prompt)
-            ));
+        ));
 
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-            ResponseEntity<Map> response = restTemplate.postForEntity(
+        ResponseEntity<Map> response = restTemplate.postForEntity(
                 groqApiUrl,
                 entity,
                 Map.class
-            );
+        );
 
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                Object choicesObj = response.getBody().get("choices");
-                if (choicesObj instanceof List<?> choices && !choices.isEmpty()) {
-                    Object first = choices.get(0);
-                    if (first instanceof Map<?, ?> choiceMap) {
-                        Object messageObj = choiceMap.get("message");
-                        if (messageObj instanceof Map<?, ?> messageMap) {
-                            Object content = messageMap.get("content");
-                            if (content != null) {
-                                return content.toString();
-                            }
+        if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+            Object choicesObj = response.getBody().get("choices");
+            if (choicesObj instanceof List<?> choices && !choices.isEmpty()) {
+                Object first = choices.get(0);
+                if (first instanceof Map<?, ?> choiceMap) {
+                    Object messageObj = choiceMap.get("message");
+                    if (messageObj instanceof Map<?, ?> messageMap) {
+                        Object content = messageMap.get("content");
+                        if (content != null) {
+                            return content.toString();
                         }
                     }
                 }
             }
-            throw new RuntimeException("Réponse Groq invalide ou vide (statut: " + response.getStatusCode() + ").");
-        } catch (Exception ex) {
-            throw new RuntimeException("خطأ واجهة Groq: " + ex.getMessage());
         }
+        throw new RuntimeException("Réponse Groq invalide ou vide (statut: " + response.getStatusCode() + ").");
+    }
+
+    @SuppressWarnings("unchecked")
+    private String appelGroq(String prompt, int maxTokens) {
+        return appelGroq(prompt, maxTokens, groqApiKey);
     }
 
     private String appelGroq(String prompt) {
-        return appelGroq(prompt, 1500);
+        return appelGroq(prompt, 1500, groqApiKey);
+    }
+
+    private String appelGroqGeneration(String prompt, int maxTokens) {
+        List<String> keys = new ArrayList<>();
+        if (groqApiKeyGeneration != null && !groqApiKeyGeneration.isBlank()) {
+            keys.add(groqApiKeyGeneration);
+        }
+        if (groqApiKey != null && !groqApiKey.isBlank()) {
+            keys.add(groqApiKey);
+        }
+        if (keys.isEmpty()) {
+            throw new IllegalStateException("Clé API Groq manquante pour la génération.");
+        }
+
+        RuntimeException lastEx = null;
+        for (String key : keys) {
+            try {
+                return appelGroq(prompt, maxTokens, key);
+            } catch (Exception ex) {
+                lastEx = new RuntimeException("Échec avec une clé Groq: " + ex.getMessage(), ex);
+            }
+        }
+        throw lastEx != null ? lastEx : new RuntimeException("Échec génération Groq.");
     }
 
     public String discuter(List<Map<String, String>> messages) {
