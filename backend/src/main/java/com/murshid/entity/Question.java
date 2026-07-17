@@ -38,6 +38,14 @@ public class Question {
     @Builder.Default
     private QuestionType type = QuestionType.COMPREHENSION;
 
+    @Column(columnDefinition = "TEXT")
+    @Builder.Default
+    private String choix = "";
+
+    @Column(length = 1000)
+    @Builder.Default
+    private String reponseCorrecte = "";
+
     @Column(nullable = false)
     private Integer niveau;
 
@@ -51,6 +59,6 @@ public class Question {
     private Lecon lecon;
 
     public enum QuestionType {
-        QCM, COMPREHENSION, REFLEXION, APPLICATION
+        QCM, TRUE_FALSE, COMPREHENSION, APPLICATION, ANALYSIS, REFLEXION
     }
 }

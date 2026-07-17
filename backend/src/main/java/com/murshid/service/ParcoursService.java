@@ -147,12 +147,26 @@ public class ParcoursService {
                         reponseDetaillee = "شرح للمفاهيم الأساسية للدرس.";
                     }
 
+                    String choix = "";
+                    if (qData.get("choix") instanceof List<?> choixList) {
+                        List<String> choixStr = new ArrayList<>();
+                        for (Object c : choixList) {
+                            if (c != null) choixStr.add(c.toString());
+                        }
+                        choix = String.join("|||", choixStr);
+                    }
+
+                    String reponseCorrecte = (String) qData.getOrDefault("reponseCorrecte", "");
+                    if (reponseCorrecte == null) reponseCorrecte = "";
+
                     Question q = Question.builder()
                         .leconId(lecon.getId())
                         .texte(texte)
                         .reponseAttendue(reponseAttendue)
                         .reponseDetaillee(reponseDetaillee)
                         .type(type)
+                        .choix(choix)
+                        .reponseCorrecte(reponseCorrecte)
                         .niveau(niveau)
                         .dateCreation(LocalDateTime.now())
                         .build();

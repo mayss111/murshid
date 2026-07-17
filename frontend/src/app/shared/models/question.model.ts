@@ -4,7 +4,9 @@ export interface Question {
     texte: string;
     reponseAttendue: string;
     reponseDetaillee: string;
-    type: 'QCM' | 'COMPREHENSION' | 'REFLEXION' | 'APPLICATION';
+    type: 'QCM' | 'TRUE_FALSE' | 'COMPREHENSION' | 'APPLICATION' | 'ANALYSIS' | 'REFLEXION';
+    choix?: string[];
+    reponseCorrecte?: string;
     niveau: number;
     dateCreation: string;
 }
