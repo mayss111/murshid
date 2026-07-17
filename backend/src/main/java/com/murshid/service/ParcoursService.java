@@ -75,7 +75,9 @@ public class ParcoursService {
     }
 
     private void createCurriculumStructure(Parcours parcours, String matiere, Integer niveau) {
+        logger.info("Debut createCurriculumStructure pour parcours {}, matiere={}, niveau={}", parcours.getId(), matiere, niveau);
         List<Map<String, String>> planLecons = groqService.genererPlanLecons(matiere, niveau);
+        logger.info("Plan leçons généré pour parcours {}: {} leçons", parcours.getId(), planLecons != null ? planLecons.size() : "null");
         if (planLecons == null || planLecons.isEmpty()) {
             logger.warn("Plan leçons vide/absent pour parcours {}, fallback manuel", parcours.getId());
             planLecons = List.of(
@@ -91,14 +93,16 @@ public class ParcoursService {
             if (titreLecon.isEmpty()) {
                 titreLecon = "درس في " + matiere;
             }
+            logger.info("Creation leçon {} pour parcours {}: {}", ordre, parcours.getId(), titreLecon);
 
             String contenuLecon = groqService.getFallbackContenuLecon(matiere, titreLecon);
             List<Map<String, Object>> questionsData = groqService.getFallbackQuestions(matiere, titreLecon);
 
             try {
                 contenuLecon = groqService.genererContenuLecon(matiere, niveau, titreLecon);
+                logger.info("Contenu généré pour leçon '{}' ({} chars)", titreLecon, contenuLecon.length());
             } catch (Exception ex) {
-                logger.error("Erreur génération contenu leçon '{}': {}", titreLecon, ex.getMessage());
+                logger.error("Erreur génération contenu leçon '{}' pour parcours {}: {}", titreLecon, parcours.getId(), ex.getMessage());
             }
 
             Lecon lecon = Lecon.builder()
@@ -112,11 +116,13 @@ public class ParcoursService {
                     .build();
 
             lecon = leconRepository.save(lecon);
+            logger.info("Leçon sauvegardée id={} pour parcours {}", lecon.getId(), parcours.getId());
 
             try {
                 questionsData = groqService.genererQuestionsLecon(matiere, niveau, titreLecon, contenuLecon, 5);
+                logger.info("Questions générées pour leçon '{}': {} questions", titreLecon, questionsData.size());
             } catch (Exception ex) {
-                logger.error("Erreur génération questions leçon '{}': {}", titreLecon, ex.getMessage());
+                logger.error("Erreur génération questions leçon '{}' pour parcours {}: {}", titreLecon, parcours.getId(), ex.getMessage());
             }
 
             Set<Question> questions = new HashSet<>();
@@ -158,8 +164,10 @@ public class ParcoursService {
             }
 
             questionRepository.saveAll(questions);
+            logger.info("Questions sauvegardées pour leçon {}: {} questions", lecon.getId(), questions.size());
             ordre++;
         }
+        logger.info("Fin createCurriculumStructure pour parcours {}: {} leçons créées", parcours.getId(), ordre - 1);
     }
 
     public Parcours obtenirParcours(Long id) {
