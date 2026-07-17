@@ -117,7 +117,7 @@ public class GroqService {
                 + "    {\"titre\": \"عنوان الدرس الثالث\", \"objectifs\": \"أهداف الدرس الثالث\"}\n"
                 + "  ]\n"
                 + "}";
-            String response = appelGroq(prompt, 1500);
+            String response = appelGroq(prompt, 1500, false);
             String cleaned = nettoyerReponsePourJson(response);
 
             try {
@@ -198,7 +198,7 @@ public class GroqService {
                     + "  {\"titre\": \"عُنوانُ الدرسِ الثانيِ\", \"contenu\": \"...\", \"questions\": [...]},\n"
                     + "  {\"titre\": \"عُنوانُ الدرسِ الثالثِ\", \"contenu\": \"...\", \"questions\": [...]}\n"
                     + "]";
-            String response = appelGroq(prompt, 2500);
+            String response = appelGroq(prompt, 4000, true);
             String cleaned = nettoyerReponsePourJson(response);
 
             List<Map<String, Object>> lecons = new ArrayList<>();
@@ -240,6 +240,7 @@ public class GroqService {
             } catch (Exception parseEx) {
                 logger.error("Erreur parsing parcours complet JSON: {}", parseEx.getMessage());
                 logger.error("الرد الخام: {}", cleaned);
+                lecons = extraireLeconsDepuisTexte(cleaned);
             }
             if (!lecons.isEmpty()) {
                 return lecons;
@@ -320,11 +321,15 @@ public class GroqService {
 
     @SuppressWarnings("unchecked")
     private String appelGroq(String prompt, int maxTokens) {
-        // 1 retry pour absorber le freeze/timeout du free-tier (1er appel lent)
+        return appelGroq(prompt, maxTokens, false);
+    }
+
+    @SuppressWarnings("unchecked")
+    private String appelGroq(String prompt, int maxTokens, boolean forceJson) {
         Exception lastEx = null;
         for (int attempt = 0; attempt < 2; attempt++) {
             try {
-                return appelGroqUnsafe(prompt, maxTokens);
+                return appelGroqUnsafe(prompt, maxTokens, forceJson);
             } catch (Exception ex) {
                 lastEx = ex;
                 logger.warn("Tentative Groq #{} échouée: {}", (attempt + 1), ex.getMessage());
@@ -334,7 +339,7 @@ public class GroqService {
     }
 
     @SuppressWarnings("unchecked")
-    private String appelGroqUnsafe(String prompt, int maxTokens) {
+    private String appelGroqUnsafe(String prompt, int maxTokens, boolean forceJson) {
         if (groqApiKey == null || groqApiKey.isBlank()) {
             throw new IllegalStateException("Clé API Groq manquante (GROQ_API_KEY non configurée).");
         }
@@ -347,6 +352,9 @@ public class GroqService {
         requestBody.put("model", model);
         requestBody.put("temperature", 0.8);
         requestBody.put("max_tokens", maxTokens);
+        if (forceJson) {
+            requestBody.put("response_format", Map.of("type", "json_object"));
+        }
         requestBody.put("messages", List.of(
                 Map.of("role", "user", "content", prompt)
         ));
@@ -399,6 +407,55 @@ public class GroqService {
         if (endJson == -1 || endJson < startJson) return cleaned;
 
         return cleaned.substring(startJson, endJson + 1).trim();
+    }
+
+    private String reparerJsonBrut(String brut) {
+        if (brut == null || brut.isBlank()) return "";
+        String s = brut.trim();
+        s = s.replaceAll("^```json\\s*", "").replaceAll("^```\\s*", "")
+                .replaceAll("\\s*```$", "");
+        int start = Math.max(s.indexOf('['), s.indexOf('{'));
+        if (start == -1) return s;
+        int end = -1;
+        if (s.charAt(start) == '[') {
+            end = s.lastIndexOf(']');
+        } else {
+            end = s.lastIndexOf('}');
+        }
+        if (end == -1 || end < start) return s;
+        return s.substring(start, end + 1).trim();
+    }
+
+    private List<Map<String, Object>> extraireLeconsDepuisTexte(String texte) {
+        List<Map<String, Object>> lecons = new ArrayList<>();
+        if (texte == null || texte.isBlank()) return lecons;
+        String[] blocs = texte.split("\\n\\s*\\n");
+        String titreEnCours = "";
+        StringBuilder contenuEnCours = new StringBuilder();
+        for (String bloc : blocs) {
+            String ligne = bloc.trim();
+            if (ligne.startsWith("الدرس") || ligne.startsWith("درس") || ligne.startsWith("###") || ligne.startsWith("- ")) {
+                if (!titreEnCours.isBlank() && contenuEnCours.length() > 20) {
+                    Map<String, Object> lecon = new HashMap<>();
+                    lecon.put("titre", titreEnCours);
+                    lecon.put("contenu", contenuEnCours.toString().trim());
+                    lecon.put("questions", new ArrayList<>());
+                    lecons.add(lecon);
+                }
+                titreEnCours = ligne.replaceAll("^[-#*\\s]+", "").trim();
+                contenuEnCours.setLength(0);
+            } else if (!ligne.isBlank() && !ligne.startsWith("```") && !ligne.startsWith("{")) {
+                contenuEnCours.append(ligne).append("\n");
+            }
+        }
+        if (!titreEnCours.isBlank() && contenuEnCours.length() > 20) {
+            Map<String, Object> lecon = new HashMap<>();
+            lecon.put("titre", titreEnCours);
+            lecon.put("contenu", contenuEnCours.toString().trim());
+            lecon.put("questions", new ArrayList<>());
+            lecons.add(lecon);
+        }
+        return lecons;
     }
 
     // ====================== FALLBACKS (secours uniquement) ======================
