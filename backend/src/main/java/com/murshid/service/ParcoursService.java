@@ -75,77 +75,82 @@ public class ParcoursService {
     }
 
     private void createCurriculumStructure(Parcours parcours, String matiere, Integer niveau) {
-        // Generate dynamic, varied lesson titles via AI (fallback statique enrichi en dernier recours)
         List<Map<String, String>> planLecons = groqService.genererPlanLecons(matiere, niveau);
-        if (planLecons.isEmpty()) {
-            planLecons = groqService.genererPlanLecons(matiere, niveau);
+        if (planLecons == null || planLecons.isEmpty()) {
+            logger.warn("Plan leçons vide/absent pour parcours {}, fallback manuel", parcours.getId());
+            planLecons = List.of(
+                Map.of("titre", "أساسيات " + matiere, "objectif", "فهم المبادئ الأساسية"),
+                Map.of("titre", "تطبيقات عملية في " + matiere, "objectif", "ربط المفاهيم بالواقع"),
+                Map.of("titre", "إتقان وتقييم في " + matiere, "objectif", "مراجعة شاملة واختبار")
+            );
         }
 
         int ordre = 1;
         for (Map<String, String> leconPlan : planLecons) {
-            String titreLecon = leconPlan.getOrDefault("titre", "درس في " + matiere).trim();
-            if (titreLecon.isEmpty()) {
-                titreLecon = "درس في " + matiere;
+            try {
+                String titreLecon = leconPlan.getOrDefault("titre", "درس في " + matiere).trim();
+                if (titreLecon.isEmpty()) {
+                    titreLecon = "درس في " + matiere;
+                }
+
+                String contenuLecon = groqService.genererContenuLecon(matiere, niveau, titreLecon);
+
+                Lecon lecon = Lecon.builder()
+                        .parcoursId(parcours.getId())
+                        .titre(titreLecon)
+                        .contenu(contenuLecon)
+                        .niveau(niveau)
+                        .matiere(matiere)
+                        .ordreSequence(ordre)
+                        .dateCreation(LocalDateTime.now())
+                        .build();
+
+                lecon = leconRepository.save(lecon);
+
+                List<Map<String, Object>> questionsData = groqService.genererQuestionsLecon(matiere, niveau, titreLecon, contenuLecon, 5);
+                Set<Question> questions = new HashSet<>();
+                for (Map<String, Object> qData : questionsData) {
+                    Question.QuestionType type;
+                    try {
+                        String typeStr = (String) qData.getOrDefault("type", "COMPREHENSION");
+                        type = Question.QuestionType.valueOf(typeStr.toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        type = Question.QuestionType.COMPREHENSION;
+                    }
+
+                    String texte = (String) qData.getOrDefault("texte", "ما هي المفاهيم الأساسية لهذا الدرس؟");
+                    if (texte == null || texte.isBlank()) {
+                        texte = "ما هي المفاهيم الأساسية لهذا الدرس؟";
+                    }
+
+                    String reponseAttendue = (String) qData.getOrDefault("reponseAttendue", "إجابة قائمة على مبادئ الدرس.");
+                    if (reponseAttendue == null || reponseAttendue.isBlank()) {
+                        reponseAttendue = "إجابة قائمة على مبادئ الدرس.";
+                    }
+
+                    String reponseDetaillee = (String) qData.getOrDefault("reponseDetaillee", "شرح للمفاهيم الأساسية للدرس.");
+                    if (reponseDetaillee == null || reponseDetaillee.isBlank()) {
+                        reponseDetaillee = "شرح للمفاهيم الأساسية للدرس.";
+                    }
+
+                    Question q = Question.builder()
+                            .leconId(lecon.getId())
+                            .texte(texte)
+                            .reponseAttendue(reponseAttendue)
+                            .reponseDetaillee(reponseDetaillee)
+                            .type(type)
+                            .niveau(niveau)
+                            .dateCreation(LocalDateTime.now())
+                            .build();
+
+                    questions.add(q);
+                }
+
+                questionRepository.saveAll(questions);
+                ordre++;
+            } catch (Exception leconEx) {
+                logger.error("Erreur création leçon pour parcours {}: {}", parcours.getId(), leconEx.getMessage());
             }
-
-            // Generate lesson content with Groq
-            String contenuLecon = groqService.genererContenuLecon(matiere, niveau, titreLecon);
-
-            Lecon lecon = Lecon.builder()
-                    .parcoursId(parcours.getId())
-                    .titre(titreLecon)
-                    .contenu(contenuLecon)
-                    .niveau(niveau)
-                    .matiere(matiere)
-                    .ordreSequence(ordre)
-                    .dateCreation(LocalDateTime.now())
-                    .build();
-
-            lecon = leconRepository.save(lecon);
-
-            // Generate questions with Groq (5 questions per lesson) using the actual lesson content
-            List<Map<String, Object>> questionsData = groqService.genererQuestionsLecon(matiere, niveau, titreLecon, contenuLecon, 5);
-            Set<Question> questions = new HashSet<>();
-            for (Map<String, Object> qData : questionsData) {
-                Question.QuestionType type;
-                try {
-                    String typeStr = (String) qData.getOrDefault("type", "COMPREHENSION");
-                    type = Question.QuestionType.valueOf(typeStr.toUpperCase());
-                } catch (IllegalArgumentException e) {
-                    type = Question.QuestionType.COMPREHENSION;
-                }
-                
-                // Valider les champs de la question
-                String texte = (String) qData.getOrDefault("texte", "ما هي المفاهيم الأساسية لهذا الدرس؟");
-                if (texte == null || texte.isBlank()) {
-                    texte = "ما هي المفاهيم الأساسية لهذا الدرس؟";
-                }
-
-                String reponseAttendue = (String) qData.getOrDefault("reponseAttendue", "إجابة قائمة على مبادئ الدرس.");
-                if (reponseAttendue == null || reponseAttendue.isBlank()) {
-                    reponseAttendue = "إجابة قائمة على مبادئ الدرس.";
-                }
-
-                String reponseDetaillee = (String) qData.getOrDefault("reponseDetaillee", "شرح للمفاهيم الأساسية للدرس.");
-                if (reponseDetaillee == null || reponseDetaillee.isBlank()) {
-                    reponseDetaillee = "شرح للمفاهيم الأساسية للدرس.";
-                }
-                
-                Question q = Question.builder()
-                    .leconId(lecon.getId())
-                    .texte(texte)
-                    .reponseAttendue(reponseAttendue)
-                    .reponseDetaillee(reponseDetaillee)
-                    .type(type)
-                    .niveau(niveau)
-                    .dateCreation(LocalDateTime.now())
-                    .build();
-                
-                questions.add(q);
-            }
-
-            questionRepository.saveAll(questions);
-            ordre++;
         }
     }
 
